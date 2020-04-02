@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#  Author:       Adam Wright
+#  Description: 
+
+# Loop to print the matrix passed in
+while read myLine
+do
+        echo "$myLine"
+done < $1
