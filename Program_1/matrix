@@ -14,6 +14,7 @@
 ##                  product of an MxN and NxP matrix and produce an MxP matrix 
 ###############################################################################
 
+greet="Hello World"
 
 # 
 
@@ -27,13 +28,6 @@ then
 fi
 
 
-# Loop to print the matrix passed in
-
-while read myLine
-do
-        echo "$myLine"
-done < $1
-
 
 # NAME
 #   dims - returns the dimension of a valid matrix
@@ -45,7 +39,9 @@ done < $1
 
 dims()
 {
+    echo $greet
 
+    exit 0
 }
 
 
@@ -59,7 +55,9 @@ dims()
 
 transpose()
 {
-
+    echo $greet
+    
+    exit 0
 }
 
 
@@ -73,7 +71,9 @@ transpose()
 
 mean()
 {
-
+    echo $greet
+    
+    exit 0
 }
 
 
@@ -87,7 +87,9 @@ mean()
 
 add()
 {
-
+    echo $greet
+    
+    exit 0
 }
 
 
@@ -100,6 +102,10 @@ add()
 #   MxP matrix
 
 multiply()
-[
+{
+    echo $greet
+    
+    exit 0
+}
 
-]
+add
