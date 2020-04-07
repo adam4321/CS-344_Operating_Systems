@@ -1,10 +1,105 @@
 #!/bin/bash
 
-#  Author:       Adam Wright
-#  Description: 
+###############################################################################
+##  Author:       Adam Wright
+##  Email:        wrighada@oregonstate.edu
+##  Date:         3-30-2020
+##  Description:  Bash shell script with 5 callable functions
+##                - dims [matrix] returns the dimensions of a valid matrix
+##                - transpose [matrix] reflect the matrix elements MxN => NxM
+##                - mean [matrix] returns means of each column of a matrix
+##                - add [Matrix_left  Matrix_right] sums 2 equal dimension
+##                  matrices element-wise
+##                - multiply [Matrix_left  Matrix_right] returns to stdout the
+##                  product of an MxN and NxP matrix and produce an MxP matrix 
+###############################################################################
+
+
+# 
+
+datafilepath="datafile$$"
+if [ "$#" = "1" ]
+then
+    cat > "$datafilepath"
+elif [ "$#" = "2" ]
+then
+    datafilepath=$2
+fi
+
 
 # Loop to print the matrix passed in
+
 while read myLine
 do
         echo "$myLine"
 done < $1
+
+
+# NAME
+#   dims - returns the dimension of a valid matrix
+# SYNOPSIS
+#   dims [matrix]
+# DESCRIPTION
+#   Returns the row count and column count separated by a space to stdout
+#   when it is given a valid matrix from stdin or a file
+
+dims()
+{
+
+}
+
+
+# NAME
+#   transpose - reflect the matrix elements MxN => NxM
+# SYNOPSIS
+#   transpose [matrix]
+# DESCRIPTION
+#   Returns a new matrix to stdout with the elements reflected over the
+#   diagonal when it is given a valid matrix from stdin or a file
+
+transpose()
+{
+
+}
+
+
+# NAME
+#   mean - returns the mean of each column of a valid matrix
+# SYNOPSIS
+#   mean [matrix]
+# DESCRIPTION
+#   Returns the mean of each column of a matrix to stdout when it is given
+#   a valid matrix from stdin or a file
+
+mean()
+{
+
+}
+
+
+# NAME
+#   add - sums 2 equal dimension matrices element-wise
+# SYNOPSIS
+#   add [Matrix_left  Matrix_right]
+# DESCRIPTION
+#   Returns to stdout the matrix representing the element-wise sums of 2 equal
+#   dimension matrices
+
+add()
+{
+
+}
+
+
+# NAME
+#   multiply - sums 2 equal dimension matrices element-wise
+# SYNOPSIS
+#   multiply [Matrix_left  Matrix_right]
+# DESCRIPTION
+#   Returns to stdout the product of an MxN and NxP matrix and to produce an
+#   MxP matrix
+
+multiply()
+[
+
+]
