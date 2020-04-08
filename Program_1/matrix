@@ -14,19 +14,23 @@
 ##                  product of an MxN and NxP matrix and produce an MxP matrix 
 ###############################################################################
 
-greet="Hello World"
 
-# 
+# Create temporary file and trap statement to erase it on an interrupt signal
+TMP="temp_file$$"
+trap "rm -f $TMP; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
 
-datafilepath="datafile$$"
+
+# Use TMP to hold the value of stdin or an existing file
 if [ "$#" = "1" ]
 then
-    cat > "$datafilepath"
+    cat > "$TMP"
 elif [ "$#" = "2" ]
 then
-    datafilepath=$2
+    TMP=$2
 fi
 
+
+greet="Hello World"
 
 
 # NAME
@@ -108,4 +112,20 @@ multiply()
     exit 0
 }
 
-add
+
+# Validate the number of arguments
+[ $# -lt 1 ] && echo "Invalid command: No arguments provided" >&2
+[ $? -eq 0 ] && exit 2
+
+[ $# -gt 3 ] && echo "Invalid command: Too many arguments provided" >&2
+[ $? -eq 0 ] && exit 3
+
+# Validate the passed in array
+
+
+# Call the requested bash function
+
+
+
+
+
