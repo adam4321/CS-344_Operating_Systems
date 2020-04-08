@@ -22,7 +22,7 @@ TMP="temp_file$$"
 trap "rm -f $TMP; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
 
 
-greet="Hello World"
+greet="Hello World"     # ERASE THIS 
 
 
 # NAME
@@ -35,8 +35,21 @@ greet="Hello World"
 
 dims()
 {
-    echo $greet
+    row_count=0
+    col_count=0
 
+    # Loop through the file to count the rows
+    while read cur_line
+    do
+        ((row_count++))
+    done < $1
+
+    # Count the number of words in line 1
+    col_count=$(head -n 1 $1 | wc -w)
+
+    echo $row_count $col_count
+
+    rm -f "temp_file$$"
     exit 0
 }
 
@@ -51,8 +64,10 @@ dims()
 
 transpose()
 {
+
     echo $greet
     
+    rm -f "temp_file$$"
     exit 0
 }
 
@@ -69,6 +84,7 @@ mean()
 {
     echo $greet
     
+    rm -f "temp_file$$"
     exit 0
 }
 
@@ -85,6 +101,7 @@ add()
 {
     echo $greet
     
+    rm -f "temp_file$$"
     exit 0
 }
 
@@ -101,42 +118,76 @@ multiply()
 {
     echo $greet
     
+    rm -f "temp_file$$"
     exit 0
 }
 
 
-# Validate the number of arguments
-[ $# -lt 1 ] && echo "Invalid command: No arguments provided" >&2
+# Validate that the number of arguments is between 1 and 3
+[ $# -lt 1 ] && echo "Invalid command: No Function called" >&2
 [ $? -eq 0 ] && exit 2
 
 [ $# -gt 3 ] && echo "Invalid command: Too many arguments provided" >&2
 [ $? -eq 0 ] && exit 3
 
-# Validate the passed in array
 
-
-
-
-# Use TMP to hold the value of stdin or an existing file
-if [ "$#" = "1" ]
+# Check the argument count of the single arg functions 
+if [ "$1" = "dims" ] || [ "$1" = "mean" ] || [ "$1" = "transpose" ]
 then
-    cat > "$TMP"
-elif [ "$#" = "2" ]
-then
-    TMP=$2
+    # Use TMP to hold the value of stdin or an existing file
+    if [ "$#" = "1" ]
+    then
+        # Take in the stdin input
+        cat > "$TMP"
+
+        # Validate the input temp file from stdin and delete if malformed
+        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" >&2
+        [ $? -eq 0 ] && rm -f "temp_file$$" && exit 4
+
+    elif [ "$#" = "2" ]
+    then
+        # If a file was provided, then assign it to TMP
+        TMP=$2
+
+        # Validate the provided file
+        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" >&2
+        [ $? -eq 0 ] && exit 5
+
+    elif [ "$#" = "3" ]
+    then
+        echo -e "Invalid command: $1 only accepts 1 argument" >&2
+        exit 6
+    fi
+fi
+
+
+# Check the argument count of 2 arg functions
+if [ "$1" = "add" ] || [ "$1" = "multiply" ]
+then   
+    # Verify the arg count
+    [ $# -ne 3 ] && echo "Invalid command: 2 matrix files are required" >&2
+    [ $? -eq 0 ] && exit 7
+
+    # Validate matrix 1
+    [ ! -f $2 ] || [ ! -r $2 ] && echo "Matrix file 1 is invalid" >&2
+    [ $? -eq 0 ] && exit 8
+
+    # Validate matrix 2
+    [ ! -f $3 ] || [ ! -r $3 ] && echo "Matrix file 2 is invalid" >&2
+    [ $? -eq 0 ] && exit 9
 fi
 
 
 # Call the requested bash function in arg 1 with all remaining arguments
 case $1 in
     dims)
-        $1 "${@:2}"
+        $1 $TMP
     ;;
     transpose)
-        $1 "${@:2}"
+        $1 $TMP
     ;;
     mean)
-        $1 "${@:2}"
+        $1 $TMP
     ;;
     add)
         $1 "${@:2}"
@@ -146,9 +197,7 @@ case $1 in
     ;;
     *)
         echo "No valid function called, exiting" 1>&2
-        exit 4
+        rm -f "temp_file$$"
+        exit 10
     ;;
 esac
-
-# Remove temp file
-rm -f "temp_file$$"
