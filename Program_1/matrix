@@ -15,19 +15,11 @@
 ###############################################################################
 
 
-# Create temporary file and trap statement to erase it on an interrupt signal
+# Create unique temporary file
 TMP="temp_file$$"
+
+# A trap statement to erase TMP file on an interrupt signal
 trap "rm -f $TMP; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
-
-
-# Use TMP to hold the value of stdin or an existing file
-if [ "$#" = "1" ]
-then
-    cat > "$TMP"
-elif [ "$#" = "2" ]
-then
-    TMP=$2
-fi
 
 
 greet="Hello World"
@@ -123,9 +115,40 @@ multiply()
 # Validate the passed in array
 
 
-# Call the requested bash function
 
 
+# Use TMP to hold the value of stdin or an existing file
+if [ "$#" = "1" ]
+then
+    cat > "$TMP"
+elif [ "$#" = "2" ]
+then
+    TMP=$2
+fi
 
 
+# Call the requested bash function in arg 1 with all remaining arguments
+case $1 in
+    dims)
+        $1 "${@:2}"
+    ;;
+    transpose)
+        $1 "${@:2}"
+    ;;
+    mean)
+        $1 "${@:2}"
+    ;;
+    add)
+        $1 "${@:2}"
+    ;;
+    multiply)
+        $1 "${@:2}"
+    ;;
+    *)
+        echo "No valid function called, exiting" 1>&2
+        exit 4
+    ;;
+esac
 
+# Remove temp file
+rm -f "temp_file$$"
