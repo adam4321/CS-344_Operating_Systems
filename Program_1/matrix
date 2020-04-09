@@ -15,15 +15,15 @@
 ###############################################################################
 
 
-# Create unique temporary file
+# Create unique temporary file for holding stdin input
 TMP="temp_file$$"
 
 # Define trap statement to erase this TMP file on an interrupt signal
 trap "rm -f "temp_file$$"; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
 
 
-greet="Hello World"                                         # ERASE THIS TESTING VARIABLE
-
+##  Functions
+###############################################################################
 
 # NAME
 #   dims - returns the dimension of a valid matrix
@@ -106,7 +106,9 @@ transpose()
 
 mean()
 {
-    echo $greet
+    local sum=0
+    local count=0
+
     
     # Remove any temp files
     rm -f "temp_file$$"
@@ -138,7 +140,7 @@ add()
     fi
     
     # Remove any temp files
-    rm -f "temp_file$$"
+    #rm -f "temp_file$$"
 
     exit 0
 }
@@ -174,11 +176,14 @@ multiply()
     fi
     
     # Remove any temp files
-    rm -f "temp_file$$"
+    #rm -f "temp_file$$"
 
     exit 0
 }
 
+
+##  Script execution
+###############################################################################
 
 # Validate that the number of arguments is between 1 and 3
 [ $# -lt 1 ] && echo "Invalid command: No Function called" 1>&2
