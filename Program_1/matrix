@@ -18,7 +18,7 @@
 # Create unique temporary file
 TMP="temp_file$$"
 
-# Define trap statement to erase TMP file on an interrupt signal
+# Define trap statement to erase this TMP file on an interrupt signal
 trap "rm -f "temp_file$$"; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
 
 
@@ -50,7 +50,9 @@ dims()
     # Display the result
     echo $row_count $col_count
 
+    # Remove any temp files
     rm -f "temp_file$$"
+
     exit 0
 }
 
@@ -73,21 +75,23 @@ transpose()
     # Count the number of words in line 1
     local col_count=$( head -n 1 $1 | wc -w )
     
-    # This post was used in figuring out the looping action
+    # This post was used in figuring out the looping action (s/e/d isn't allowed!)
     # https://stackoverflow.com/questions/1729824/an-efficient-way-to
     # -transpose-a-file-in-bash
     # Loop through each row and capture the characters and append them
     # to the temp file 
     for (( i=1; i <= col_count; i++ ))
     do
-        cut -f "$i" "$1" | tr $'\n' $'\t' | sed -e "s/\t$/\n/g" >> "$temp"
+        cut -f "$i" "$1" | paste -s >> "$temp"
     done
 
     # Display the result
     cat "$temp"
 
+    # Remove any temp files
     rm -f "$temp"
     rm -f "temp_file$$"
+
     exit 0
 }
 
@@ -104,7 +108,9 @@ mean()
 {
     echo $greet
     
+    # Remove any temp files
     rm -f "temp_file$$"
+
     exit 0
 }
 
@@ -125,13 +131,15 @@ add()
 
     if [ "$dim_m_left" = "$dim_m_rgt" ]
     then
-        paste -d, $1 $2
+        
     else
-        echo "Add functions requires equal dimension matrices" 1>&2
+        echo "Add function requires equal dimension matrices" 1>&2
         exit 12
     fi
     
+    # Remove any temp files
     rm -f "temp_file$$"
+
     exit 0
 }
 
@@ -146,9 +154,28 @@ add()
 
 multiply()
 {
-    echo $greet
+    # Test that the matrices have identical dimensions
+    local dim_m_lft=$(dims $1)
+    local dim_m_rgt=$(dims $2)
+
+    local m_lft_rows="${dim_m_lft[0]}"
+    local m_lft_cols="${dim_m_lft[1]}"
+
+    local m_rgt_rows="${dim_m_lft[0]}"
+    local m_rgt_cols="${dim_m_lft[1]}"
+
+    # Test that the matrices have identical dimensions
+    if [ "$m_lft_cols" = "$m_rgt_rows" ]
+    then
+        
+    else
+        echo "Multiply function requires MxN * NxP = MxP dimensions" 1>&2
+        exit 13
+    fi
     
+    # Remove any temp files
     rm -f "temp_file$$"
+
     exit 0
 }
 
