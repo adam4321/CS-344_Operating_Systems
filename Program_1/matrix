@@ -18,11 +18,11 @@
 # Create unique temporary file
 TMP="temp_file$$"
 
-# A trap statement to erase TMP file on an interrupt signal
-trap "rm -f $TMP; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
+# Define trap statement to erase TMP file on an interrupt signal
+trap "rm -f "temp_file$$"; echo 'CTRL+C received, exiting'; exit 1" INT HUP TERM
 
 
-greet="Hello World"     # ERASE THIS 
+greet="Hello World"                                         # ERASE THIS TESTING VARIABLE
 
 
 # NAME
@@ -35,18 +35,19 @@ greet="Hello World"     # ERASE THIS
 
 dims()
 {
-    row_count=0
-    col_count=0
+    local row_count=0
+    local col_count=0
 
     # Loop through the file to count the rows
-    while read cur_line
+    while read local cur_line
     do
-        ((row_count++))
+        (( row_count++ ))
     done < $1
 
     # Count the number of words in line 1
-    col_count=$(head -n 1 $1 | wc -w)
+    col_count=$( head -n 1 $1 | wc -w )
 
+    # Display the result
     echo $row_count $col_count
 
     rm -f "temp_file$$"
@@ -64,9 +65,28 @@ dims()
 
 transpose()
 {
+    temp="trns_temp$$"
 
-    echo $greet
+    # Define trap statement to erase TMP file on an interrupt signal
+    trap "rm -f "trns_temp$$"; echo 'CTRL+C received, exiting'; exit 11" INT HUP TERM
+
+    # Count the number of words in line 1
+    local col_count=$( head -n 1 $1 | wc -w )
     
+    # This post was used in figuring out the looping action
+    # https://stackoverflow.com/questions/1729824/an-efficient-way-to
+    # -transpose-a-file-in-bash
+    # Loop through each row and capture the characters and append them
+    # to the temp file 
+    for (( i=1; i <= col_count; i++ ))
+    do
+        cut -f "$i" "$1" | tr $'\n' $'\t' | sed -e "s/\t$/\n/g" >> "$temp"
+    done
+
+    # Display the result
+    cat "$temp"
+
+    rm -f "$temp"
     rm -f "temp_file$$"
     exit 0
 }
@@ -99,7 +119,17 @@ mean()
 
 add()
 {
-    echo $greet
+    # Test that the matrices have identical dimensions
+    local dim_m_lft=$(dims $1)
+    local dim_m_rgt=$(dims $2)
+
+    if [ "$dim_m_left" = "$dim_m_rgt" ]
+    then
+        paste -d, $1 $2
+    else
+        echo "Add functions requires equal dimension matrices" 1>&2
+        exit 12
+    fi
     
     rm -f "temp_file$$"
     exit 0
@@ -124,38 +154,38 @@ multiply()
 
 
 # Validate that the number of arguments is between 1 and 3
-[ $# -lt 1 ] && echo "Invalid command: No Function called" >&2
+[ $# -lt 1 ] && echo "Invalid command: No Function called" 1>&2
 [ $? -eq 0 ] && exit 2
 
-[ $# -gt 3 ] && echo "Invalid command: Too many arguments provided" >&2
+[ $# -gt 3 ] && echo "Invalid command: Too many arguments provided" 1>&2
 [ $? -eq 0 ] && exit 3
 
 
 # Check the argument count of the single arg functions 
 if [ "$1" = "dims" ] || [ "$1" = "mean" ] || [ "$1" = "transpose" ]
 then
-    # Use TMP to hold the value of stdin or an existing file
+    # Use TMP to hold the value of stdin for 1 arg call
     if [ "$#" = "1" ]
     then
-        # Take in the stdin input
+        # Take in the stdin input into TMP
         cat > "$TMP"
 
         # Validate the input temp file from stdin and delete if malformed
-        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" >&2
+        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" 1>&2
         [ $? -eq 0 ] && rm -f "temp_file$$" && exit 4
 
     elif [ "$#" = "2" ]
     then
-        # If a file was provided, then assign it to TMP
+        # For a 2 arg call, a file was provided, so assign it to TMP
         TMP=$2
 
         # Validate the provided file
-        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" >&2
+        [ ! -f "$TMP" ] || [ ! -r "$TMP" ] && echo "Matrix file is invalid" 1>&2
         [ $? -eq 0 ] && exit 5
 
     elif [ "$#" = "3" ]
     then
-        echo -e "Invalid command: $1 only accepts 1 argument" >&2
+        echo -e "Invalid command: $1 only accepts 1 argument" 1>&2
         exit 6
     fi
 fi
@@ -165,20 +195,20 @@ fi
 if [ "$1" = "add" ] || [ "$1" = "multiply" ]
 then   
     # Verify the arg count
-    [ $# -ne 3 ] && echo "Invalid command: 2 matrix files are required" >&2
+    [ $# -ne 3 ] && echo "Invalid command: 2 matrix files are required" 1>&2
     [ $? -eq 0 ] && exit 7
 
     # Validate matrix 1
-    [ ! -f $2 ] || [ ! -r $2 ] && echo "Matrix file 1 is invalid" >&2
+    [ ! -f $2 ] || [ ! -r $2 ] && echo "Matrix file 1 is invalid" 1>&2
     [ $? -eq 0 ] && exit 8
 
     # Validate matrix 2
-    [ ! -f $3 ] || [ ! -r $3 ] && echo "Matrix file 2 is invalid" >&2
+    [ ! -f $3 ] || [ ! -r $3 ] && echo "Matrix file 2 is invalid" 1>&2
     [ $? -eq 0 ] && exit 9
 fi
 
 
-# Call the requested bash function in arg 1 with all remaining arguments
+# Call the requested bash function in arg 1 with relevant arguments
 case $1 in
     dims)
         $1 $TMP
