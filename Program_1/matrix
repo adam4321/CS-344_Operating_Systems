@@ -86,7 +86,7 @@ transpose()
     # Display the result
     cat "$temp"
 
-    # Remove any temp files
+    # Remove the temp files
     rm -f "$temp"
     rm -f "temp_file$$"
 
@@ -104,66 +104,45 @@ transpose()
 
 mean()
 {
-    temp="mean_temp$$"
+    # Count the number of words in line 1
+    local col_count=$( head -n 1 $1 | wc -w )
 
-    # Define trap statement to erase TMP file on an interrupt signal
-    trap "rm -f "mean_temp$$"; echo 'CTRL+C received, exiting'; exit 11" INT HUP TERM
-
-    # Retrieve the matrix dimensions
-    local dims_m=$( dims $1 )
-    local row_count=$( echo "$dims_m" | cut -d ' ' -f 1 )
-    local col_count=$( echo "$dims_m" | cut -d ' ' -f 2 )
-
-
-    #local col_count=$( head -n 1 $1 | wc -w )    
-
-    for (( i=0; i <= col_count; i++ ))
+    # Count the number of rows
+    local row_count=0
+    while read myLine
     do
+            ((row_count++))
+    done < $1
+   
+    # Loop through the columns in the input file
+    for (( i=0; i < col_count; i++ ))
+    do
+        # Hold the sum of the current column
+        local sum=0
 
-        sum=0
-        avg=0
-
-        
-
-
-        #cut -f "$i" "$1" > "$temp"
-        #echo $col
-        #echo $col_nums
-
-
+        # Loop through the rows
         while read -a line
         do
-            sum="$(( sum + "${line[i]}" ))"
-            echo -e "${line[i]}"
+            # Pull the number and strip potential control characters
+            local num=${line[i]}
+            num=${num//[ $'\r'$'\n']}
+
+            (( sum += num ))
         done < $1
 
-        #echo $sum
-
-        # while read num
-        # do
-            
-        #     #sum=$(( $sum + $num ))
-        #     echo $i
-        #     echo -e "sum: $sum"
-        #     echo -e "num:  $num"
-        # done < "$temp"
-
-        
-
-        #local avg="$(( $sum / $row_count ))"
-        #local avg="$((( $sum + ( $row_count / 2 ) * ( $sum > 0 ) * 2 - 1 )) / $row_count ))"
-        #echo $avg
-
-        # if [[ "$i" -lt "$col_count" ]]
-        # then
-        #     printf "%d\t" "$avg"
-        # else
-        #     printf "%d\n" "$avg"
-        # fi
+        # Calculate the average of the column with averaging
+        local avg=$(( ( sum + ( row_count / 2 ) * (( sum > 0 ) * 2 - 1 )) / row_count ))
+       
+        # Print the result with the correct formatting
+        if [[ $i -lt "(( $col_count - 1 ))" ]]
+        then
+            printf "%d\t" "$avg"
+        else
+            printf "%d\n" "$avg"
+        fi
     done
 
-    # Remove any temp files
-    rm -f "$temp"
+    # Remove temp file
     rm -f "temp_file$$"
 
     exit 0
