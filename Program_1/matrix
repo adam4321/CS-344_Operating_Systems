@@ -156,6 +156,9 @@ mean()
 # DESCRIPTION
 #   Returns to stdout the matrix representing the element-wise sums of 2 equal
 #   dimension matrices
+# This post was used in figuring out the two file while loop
+# https://unix.stackexchange.com/questions/26601/how-to-read-from-two-input-
+# files-using-while-loop
 
 add()
 {
@@ -169,43 +172,40 @@ add()
         local row_count=$( echo "$dims_m_lft" | cut -d ' ' -f 1 )
         local col_count=$( echo "$dims_m_lft" | cut -d ' ' -f 2 )
 
-        # 
+        # Loop through the rows of both matrices simultaneously
         while true
         do
             read -r f1 <&3 || break
             read -r f2 <&4 || break
 
-            # Strip any potential control characters and store nums
-            local row_1=${f1//[ $'\r'$'\n']}
-            local row_2=${f2//[ $'\r'$'\n']}
+            # Pull the two rows during each iteration
+            local row_1=$f1
+            local row_2=$f2
 
-            #echo $row_1 $row_2
+            #echo $row_1 #$row_2
 
             # Loop through the columns in the input files
-            for (( i=0; i < col_count; i++ ))
+            for (( i=1; i <= col_count; i++ ))
             do
+                # Pull the number from the 
+                local num_1=$( echo $row_1 | cut -d " " -f "$i" )
+                local num_2=$( echo $row_2 | cut -d " " -f "$i" )
 
-                local sum=0
-
-
-                # Pull matrix 1 num and strip potential control characters
-                local num_1=${row_1:$i:1}
-
-                # Pull matrix 2 num and strip potential control characters
-                local num_2=${row_2:$i:1}
+                # Strip any potential control characters
+                num_1=${num_1//[ $'\r'$'\n']}
+                num_2=${num_2//[ $'\r'$'\n']}
 
                 # Sum the values
-                sum=$((num_1 + num_2))
+                local sum=$(( num_1 + num_2 ))
 
                 # Print the result with the correct formatting
-                if [[ $i -lt "(( $col_count - 1 ))" ]]
+                if [[ $i -lt "(( $col_count ))" ]]
                 then
                     printf "%d\t" "$sum"
                 else
                     printf "%d\n" "$sum"
                 fi
             done
-
         done 3<$1 4<$2
 
     else
