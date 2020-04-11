@@ -163,13 +163,13 @@ add()
     local dims_m_lft=$( dims $1 )
     local dims_m_rgt=$( dims $2 )
 
-    if [ "$dims_m_lft" = "$dims_m_rgt" ]
+    if [[ "$dims_m_lft" = "$dims_m_rgt" ]]
     then
         # Pull the dimensions
         local row_count=$( echo "$dims_m_lft" | cut -d ' ' -f 1 )
         local col_count=$( echo "$dims_m_lft" | cut -d ' ' -f 2 )
 
-
+        # 
         while true
         do
             read -r f1 <&3 || break
