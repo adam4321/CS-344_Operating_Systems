@@ -37,9 +37,9 @@ dims()
 {
     # Count the number of words in line 1
     local col_count=$( head -n 1 $1 | wc -w )
-    local row_count=0
 
     # Loop through the file to count the rows
+    local row_count=0
     while read local cur_line
     do
         (( row_count++ ))
@@ -109,9 +109,9 @@ mean()
 
     # Count the number of rows
     local row_count=0
-    while read myLine
+    while read local cur_line
     do
-            ((row_count++))
+        (( row_count++ ))
     done < $1
    
     # Loop through the columns in the input file
@@ -159,27 +159,59 @@ mean()
 
 add()
 {
-    temp="add_temp$$"
-
-    # Define trap statement to erase TMP file on an interrupt signal
-    trap "rm -f "add_temp$$"; echo 'CTRL+C received, exiting'; exit 11" INT HUP TERM
-
     # Test that the matrices have identical dimensions
-    local dim_m_lft=$(dims $1)
-    local dim_m_rgt=$(dims $2)
+    local dims_m_lft=$( dims $1 )
+    local dims_m_rgt=$( dims $2 )
 
-    if [ "$dim_m_lft" = "$dim_m_rgt" ]
+    if [ "$dims_m_lft" = "$dims_m_rgt" ]
     then
-        echo "Hello"
+        # Pull the dimensions
+        local row_count=$( echo "$dims_m_lft" | cut -d ' ' -f 1 )
+        local col_count=$( echo "$dims_m_lft" | cut -d ' ' -f 2 )
 
+
+        while true
+        do
+            read -r f1 <&3 || break
+            read -r f2 <&4 || break
+
+            # Strip any potential control characters and store nums
+            local row_1=${f1//[ $'\r'$'\n']}
+            local row_2=${f2//[ $'\r'$'\n']}
+
+            #echo $row_1 $row_2
+
+            # Loop through the columns in the input files
+            for (( i=0; i < col_count; i++ ))
+            do
+
+                local sum=0
+
+
+                # Pull matrix 1 num and strip potential control characters
+                local num_1=${row_1:$i:1}
+
+                # Pull matrix 2 num and strip potential control characters
+                local num_2=${row_2:$i:1}
+
+                # Sum the values
+                sum=$((num_1 + num_2))
+
+                # Print the result with the correct formatting
+                if [[ $i -lt "(( $col_count - 1 ))" ]]
+                then
+                    printf "%d\t" "$sum"
+                else
+                    printf "%d\n" "$sum"
+                fi
+            done
+
+        done 3<$1 4<$2
 
     else
         echo "Add function requires equal dimension matrices" 1>&2
         exit 12
     fi
-    
-    # Remove temp file
-    rm -f "$temp"
 
     exit 0
 }
@@ -201,8 +233,8 @@ multiply()
     trap "rm -f "mult_temp$$"; echo 'CTRL+C received, exiting'; exit 11" INT HUP TERM
 
     # Test that the matrices have identical dimensions
-    local dims_m_lft=$(dims $1)
-    local dims_m_rgt=$(dims $2)
+    local dims_m_lft=$( dims $1 )
+    local dims_m_rgt=$( dims $2 )
 
     local m_lft_rows=$( echo "$dims_m_lft" | cut -d ' ' -f 1 )
     local m_lft_cols=$( echo "$dims_m_lft" | cut -d ' ' -f 2 )
