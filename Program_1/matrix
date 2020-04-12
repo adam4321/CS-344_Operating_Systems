@@ -227,13 +227,6 @@ add()
 
 multiply()
 {
-    temp="mult_temp$$"
-
-    # Define trap statement to erase TMP file on an interrupt signal
-    trap "rm -f "mult_temp$$"; echo 'CTRL+C received, exiting'; exit 14" INT HUP TERM
-
-
-
     # Test that the matrices have identical dimensions
     local dims_m_lft=$( dims $1 )
     local dims_m_rgt=$( dims $2 )
@@ -260,40 +253,31 @@ multiply()
             do
                 local sum=0
 
-                #echo $2
-
-                #rgt_col=$( cut -f $j $2 )
-                #echo $rgt_col
-
                 for (( k=1; k <= m_lft_cols; k++ ))
                 do
                     # Grab current left matrix num and strip control characters
                     local row_num=$( echo $lft_row | cut -d ' ' -f "$k" )
                     row_num=${row_num//[ $'\r'$'\n']}
 
-                    # # Grab current right matrix num and strip control characters
-                    # local col_num=$()
-                    # col_num=${col_num//[ $'\r'$'\n']}
+                    # Grab current right matrix row
+                    local col_num=$( head -$k $2 | tail -1 )
 
-                    echo -e "i: $i j: $j k: $k"
-                    # echo -e "$rgt_num"
-
-                    # rgt_num=$( echo $rgt_num | cut -d ' ' -f "$k" )
-                    # #echo -e "$rgt_num"
-
+                    # Pull the num and strip potential control characters
+                    col_num=$( echo $col_num | cut -d ' ' -f "$j" )
+                    col_num=${col_num//[ $'\r'$'\n']}
 
                     # Multiply and then sum
                     local product=$(( row_num * col_num ))
                     (( sum += product ))
                 done
      
-                # # Print the result with the correct formatting
-                # if [ $j -lt $m_rgt_cols ]
-                # then
-                #     printf "%d\t" "$sum"
-                # else
-                #     printf "%d\n" "$sum"
-                # fi
+                # Print the result with the correct formatting
+                if [ $j -lt $m_rgt_cols ]
+                then
+                    printf "%d\t" "$sum"
+                else
+                    printf "%d\n" "$sum"
+                fi
             done
         done
 
@@ -301,9 +285,6 @@ multiply()
         echo "Multiply function requires MxN * NxP = MxP dimensions" 1>&2
         exit 13
     fi
-    
-    # Remove temp file
-    rm -f "$temp"
 
     exit 0
 }
@@ -367,7 +348,7 @@ then
 fi
 
 
-# Call the requested bash function in arg 1 with relevant arguments
+# Call the requested bash function in arg 1 with the relevant arguments
 case $1 in
     dims)
         $1 $TMP
