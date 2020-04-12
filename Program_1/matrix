@@ -77,8 +77,8 @@ transpose()
     # Count the number of words in line 1
     local col_count=$( head -n 1 $1 | wc -w )
     
-    # Loop through each row and capture tab delimited fields and append them
-    # to the temp file 
+    # Loop through each row and capture tab delimited fields 
+    # and append them to the temp file 
     for (( i=1; i <= col_count; i++ ))
     do
         cut -f "$i" "$1" | paste -s >> "$temp"
