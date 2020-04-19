@@ -1,23 +1,31 @@
 """ 
-Python Project for cs-344
-OSU Operating Systems spring 2020
+Author:         Adam Wright
+Email:          wrighada@oregonstate.edu
+Description:    Python Project for OSU Operating Systems spring 2020 cs-344
 
-Author: Adam Wright
-Email:  wrighada@oregonstate.edu
+Python Version: Python 3
 """
 
 import sys
 import random
+import string
+
 
 # Create three files
-f1 = open( "file_1.txt", "w+" )
-f2 = open( "file_2.txt", "w+" )
-f3 = open( "file_3.txt", "w+" )
+f1 = open( "./file_1.txt", "w+" )
+f2 = open( "./file_2.txt", "w+" )
+f3 = open( "./file_3.txt", "w+" )
 
-# Declare strings variables for the files and stdout
-str_1 = "asdfasdfen"
-str_2 = "zxcvzxcvmd"
-str_3 = "qwerqwereu"
+# Seed the random function
+random.seed()
+
+# Declare the random string length
+string_length = 10
+
+# Generate 3 random strings of lowercase ascii
+str_1 = "".join( random.choices( string.ascii_lowercase, k = string_length )) 
+str_2 = "".join( random.choices( string.ascii_lowercase, k = string_length ))  
+str_3 = "".join( random.choices( string.ascii_lowercase, k = string_length ))  
 
 # Overwrite the files with these strings
 f1.write( str_1 + "\n" )
