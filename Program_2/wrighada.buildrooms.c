@@ -74,7 +74,8 @@ char* file_names[ROOM_COUNT] =
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
-bool IsGraphFull();
+void CreateConnections(struct Room* room_arr[]);
+bool IsGraphFull(struct Room* room_arr[]);
 void AddRandomConnection(struct Room* room_arr[]);
 struct Room* GetRandomRoom(struct Room* room_arr[]);
 bool CanAddConnectionFrom(struct Room* x);
@@ -106,8 +107,79 @@ int main()
         mkdir(Dir_Name, 0755);
     }
     
+    /* Create an array of 0-9 to select the rooms */
+    int Room_Select[ROOM_MAX];
+    int i = 0;
+    while (i < ROOM_MAX)
+    {
+        Room_Select[i] = i;
+        i++;
+    }
 
-    
+    /* Randomize the numbers in the Room selection array using Fisher–Yates shuffle Algorithm */
+    int j;
+    for (i = (ROOM_MAX - 1); i > 0; i--)
+    {
+        j = rand() % (i+1);
+
+        /* Swap the values */
+        int temp = Room_Select[i];
+        Room_Select[i] = Room_Select[j];
+        Room_Select[j] = temp;
+    }
+
+    /* Create array of room structs and fill with the indices in Room_Select */
+    struct Room* Room_Arr[ROOM_COUNT];
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        Room_Arr[i] = malloc(sizeof(struct Room));
+   
+        /* Set the random room name */
+        Room_Arr[i]->name = room_names[Room_Select[i]];
+
+        /* Set the room type */
+        if (i == 0)
+        {
+            Room_Arr[i]->type = room_types[0];
+        }
+        else if(i == (ROOM_COUNT - 1))
+        {
+            Room_Arr[i]->type = room_types[2];
+        }
+        else
+        {
+            Room_Arr[i]->type = room_types[1];
+        }
+
+        /* Set the connection count */
+        Room_Arr[i]->connect_count = 0;
+
+        /* Set all of the connection array values to 0 */
+        for (j = 0; j < CONNECT_MAX; j++)
+        {
+            Room_Arr[i]->out_connect[j] = NULL;
+        }
+    }
+
+
+    /* Pass the array of rooms to have the connections created */
+    CreateConnections(Room_Arr);
+
+
+    /* Print out the connected rooms to 7 files */
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        char File_Name[32];
+        memset(Dir_Name, '\0', sizeof(Dir_Name));
+
+        sprintf(File_Name, "%s_room", Room_Arr[i]->name);
+    }
+
+    /* Free the created rooms */
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        free(Room_Arr[i]);
+    }
 
     return 0;
 }
