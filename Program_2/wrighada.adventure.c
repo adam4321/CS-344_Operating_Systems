@@ -11,12 +11,33 @@
 #include <string.h>
 
 
-/* Definition for bool type */
+/* Global Constants */
+#define ROOM_COUNT  7
+#define CONNECT_MAX 6
+
+/* Definition for the bool type */
 typedef enum
 {
     false,
     true
 } bool;
+
+/* Definition for Room struct */
+struct Room
+{
+    char* name;
+    char* type;
+    int connect_count;
+    struct Room* out_connect[CONNECT_MAX];
+};
+
+/* Array holding the 3 types of the rooms */
+char* room_types[3] = 
+{
+    "START_ROOM",
+    "END_ROOM",
+    "MID_ROOM"
+};
 
 
 int main(void)

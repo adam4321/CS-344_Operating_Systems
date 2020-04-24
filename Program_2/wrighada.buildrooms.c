@@ -22,7 +22,7 @@
 #define CONNECT_MIN 3
 #define CONNECT_MAX 6
 
-/* Definition for bool type */
+/* Definition for the bool type */
 typedef enum
 {
     false,
@@ -60,17 +60,6 @@ char* room_types[3] =
     "MID_ROOM"
 };
 
-char* file_names[ROOM_COUNT] = 
-{
-    "AAAA_room",
-    "BBBB_room",
-    "CCCC_room",
-    "DDDD_room",
-    "EEEE_room",
-    "FFFF_room",
-    "GGGG_room"
-};
-
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
@@ -97,7 +86,7 @@ int main()
 
     /* Retrieve the current process id and create the directory */
     int pid = getpid();
-    sprintf(Dir_Name, "wrighada.rooms.%d", pid);
+    sprintf(Dir_Name, "./wrighada.rooms.%d", pid);
 
     /* Check that the directory doesn't exist, and if not create it */
     struct stat st= {0};
@@ -142,13 +131,13 @@ int main()
         {
             Room_Arr[i]->type = room_types[0];
         }
-        else if(i == (ROOM_COUNT - 1))
+        else if (i == (ROOM_COUNT - 1))
         {
-            Room_Arr[i]->type = room_types[2];
+            Room_Arr[i]->type = room_types[1];
         }
         else
         {
-            Room_Arr[i]->type = room_types[1];
+            Room_Arr[i]->type = room_types[2];
         }
 
         /* Set the connection count */
@@ -169,10 +158,28 @@ int main()
     /* Print out the connected rooms to 7 files */
     for (i = 0; i < ROOM_COUNT; i++)
     {
-        char File_Name[32];
-        memset(Dir_Name, '\0', sizeof(Dir_Name));
+        /* Create a blank string with the room name for the file name */
+        char File_Name[64];
+        memset(File_Name, '\0', sizeof(File_Name));
+        sprintf(File_Name, "./%s/%s_room", Dir_Name, Room_Arr[i]->name);
 
-        sprintf(File_Name, "%s_room", Room_Arr[i]->name);
+        /* Create a new file */
+        FILE* new_file = fopen(File_Name, "w+");
+        fprintf(new_file, "ROOM NAME: %s\n", Room_Arr[i]->name);
+        
+        /* Print the connections to the file */
+        j = 0;
+        while (j < Room_Arr[i]->connect_count)
+        {
+            fprintf(new_file, "CONNECTION %d: %s\n", j, Room_Arr[i]->out_connect[j]->name);
+            j++;
+        }
+        
+        /* Print the room's type */
+        fprintf(new_file, "ROOM TYPE: %s", Room_Arr[i]->type);
+        
+        /* Close the output file */
+        fclose(new_file);
     }
 
     /* Free the created rooms */
