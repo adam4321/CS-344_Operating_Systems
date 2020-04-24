@@ -146,7 +146,7 @@ int main()
         /* Set all of the connection array values to 0 */
         for (j = 0; j < CONNECT_MAX; j++)
         {
-            Room_Arr[i]->out_connect[j] = NULL;
+            Room_Arr[i]->out_connect[j] = 0;
         }
     }
 
@@ -197,6 +197,7 @@ int main()
 /* Create all connections in graph */
 void CreateConnections(struct Room* room_arr[])
 {   
+    /* Iterate through all of the created room structs and create the connections graph */
     while (IsGraphFull(room_arr) == false)
     {
         AddRandomConnection(room_arr);
@@ -227,7 +228,7 @@ bool IsGraphFull(struct Room* room_arr[])
 /* Adds a random, valid outbound connection from a Room to another Room */
 void AddRandomConnection(struct Room* room_arr[])
 {
-    struct Room* A;  /* Maybe a struct, maybe global arrays of ints */
+    struct Room* A;
     struct Room* B;
 
     while (true)
@@ -244,7 +245,7 @@ void AddRandomConnection(struct Room* room_arr[])
     }
     while (CanAddConnectionFrom(B) == false || IsSameRoom(A, B) == true || ConnectionAlreadyExists(A, B) == true);
 
-    ConnectRoom(A, B);  /* TODO: Add this connection to the real variables, */
+    ConnectRoom(A, B);  /* Add this connection to the real variables, */
     ConnectRoom(B, A);  /* because this A and B will be destroyed when this function terminates */
 }
 

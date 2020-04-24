@@ -40,7 +40,7 @@ char* room_types[3] =
 };
 
 
-int main(void)
+int main()
 {
     
     
