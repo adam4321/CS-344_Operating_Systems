@@ -2,7 +2,7 @@
 **  Author:      Adam Wright
 **  Email:       wrighada@oregonstate.edu
 **  Date:        4/18/2020
-**  Description: Program 2 Room generationg program for spring 2020 OSU cs-344. 
+**  Description: Program 2 Room generating program for spring 2020 OSU cs-344. 
 **               This program generates a directory with 7 room definition
 **               files within it. It creates a new directory of randomly
 **               assigned rooms each time that it is run.
