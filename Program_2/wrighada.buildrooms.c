@@ -38,6 +38,9 @@ struct Room
     struct Room* out_connect[CONNECT_MAX];
 };
 
+/* Array to hold the created rooms */
+struct Room* Room_Arr[ROOM_COUNT];
+
 /* Room arrays */
 char* room_names[ROOM_MAX] = 
 {
@@ -117,8 +120,7 @@ int main()
         Room_Select[j] = temp;
     }
 
-    /* Create array of room structs and fill with the indices in Room_Select */
-    struct Room* Room_Arr[ROOM_COUNT];
+    /* Create array of [struct Room*] and fills in order of the indices in Room_Select */
     for (i = 0; i < ROOM_COUNT; i++)
     {
         Room_Arr[i] = malloc(sizeof(struct Room));
