@@ -78,7 +78,7 @@ bool IsSameRoom(struct Room* x, struct Room* y);
 int main()
 {
     /* Seed the random function */
-    srand(time(0));
+    srand(time(NULL));
     
     /* Create a blank array for the directory name result and clear it */
     char Dir_Name[32];
@@ -146,12 +146,12 @@ int main()
         /* Set all of the connection array values to 0 */
         for (j = 0; j < CONNECT_MAX; j++)
         {
-            Room_Arr[i]->out_connect[j] = 0;
+            Room_Arr[i]->out_connect[j] = NULL;
         }
     }
 
 
-    /* Pass the array of rooms to have the connections created */
+    /* Pass the array of room pointers to have the connections created */
     CreateConnections(Room_Arr);
 
 
