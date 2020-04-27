@@ -120,7 +120,7 @@ int main()
         Room_Select[j] = temp;
     }
 
-    /* Create array of [struct Room*] and fills in order of the indices in Room_Select */
+    /* Fill [Room_Arr] with struct Room* using order of the random indices in Room_Select */
     for (i = 0; i < ROOM_COUNT; i++)
     {
         Room_Arr[i] = malloc(sizeof(struct Room));
