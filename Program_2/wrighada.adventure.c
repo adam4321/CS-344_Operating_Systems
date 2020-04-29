@@ -90,10 +90,7 @@ int main()
         break;
     } while (true);
 
-    for (i = 0; i <  7; i++)
-    {
-        printf("Roomname %d: %s\n", i, Room_Arr[i]->name);
-    }
+
 
 
 
@@ -178,6 +175,10 @@ void Fill_Room_Arr()
         }
     }
 
+    for (i = 0; i <  7; i++)
+    {
+        printf("Roomname %d: %s\n", i, Room_Arr[i]->name);
+    }
 
 
 
