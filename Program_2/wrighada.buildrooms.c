@@ -179,7 +179,7 @@ int main()
         }
         
         /* Print the room's type */
-        fprintf(new_file, "ROOM TYPE: %s", Room_Arr[i]->type);
+        fprintf(new_file, "ROOM TYPE: %s\n", Room_Arr[i]->type);
         
         /* Close the output file */
         fclose(new_file);

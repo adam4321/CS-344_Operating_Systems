@@ -58,12 +58,6 @@ char* time_file = "currentTime.txt";
 /* Lock for switching threads to display the time */
 pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 
-/* In game variables */
-int i;
-int j;
-int step_count = 0;
-
-
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
@@ -77,6 +71,11 @@ void Game_Prompt();
 
 int main()
 {
+    /* In game variables */
+    int i;
+    int j;
+    int step_count = 0;
+
     /* Search the current directory for the newest subdirectory */
     Get_Newest_Dir();
     printf("Newest entry found is: %s\n", newestDirName);
@@ -147,6 +146,9 @@ void Get_Newest_Dir()
 /* Initialize memory for the room struct array */
 void Init_Room_Arr()
 {
+    int i = 0;
+    int j = 0;
+
     /* Create space on the heap for the struct rooms array */
     for (i = 0; i < ROOM_COUNT; i++)
     {
@@ -163,30 +165,59 @@ void Init_Room_Arr()
 /* Fills the room array with data from most recent directory */
 void Fill_Room_Arr()
 {
-    int file_num = 0;
     DIR *newest_dir = opendir(newestDirName);
-    struct dirent* file_in_dir;
-    FILE *
+    struct dirent *file_in_dir;
+    char *file_name;
+    FILE *room_file;
+    char line[255];
+    int file_num = 0;
 
+    /* Iterate through the directory and grab the filenames */
     while (file_in_dir = readdir(newest_dir))
     {
+        /* Iterate through the room files and populate the struct room data */
         if (file_in_dir->d_name[0] != '.')
         {
-            Room_Arr[file_num]->name = file_in_dir->d_name;
+            /* Move into the directory and open each non-hidden file */
+            chdir(newestDirName);
+            file_name = file_in_dir->d_name;
+            room_file = fopen(file_name, "r");
+
+            /* Fill the receiving char array with null terminators */
+            memset(line, '\0', sizeof(line));
+
+            /* Split each line to pull the target data */
+            while (fgets(line, sizeof(line), room_file))
+            {
+
+                strtok(line, " ");
+                char *token_1 = strtok(NULL, " ");
+                char *token_2 = strtok(NULL, " ");
+
+                
+                token_1[strlen(token_1) - 1] = '\0';
+                token_2[strlen(token_2) - 1] = '\0';
+
+
+                if (strstr(token_1, "NAME"))
+                {
+                    Room_Arr[file_num]->name = token_2;
+                    printf("Name: %s\t", Room_Arr[file_num]->name);
+                }
+                if (strstr(token_1, "TYPE"))
+                {
+                    Room_Arr[file_num]->type = token_2;
+                    printf("Type:  %s\n", Room_Arr[file_num]->type);
+                }
+                
+            }
+            
             file_num++;
+            fclose(room_file);
         }
     }
 
-    i = 0;
-    while (i < ROOM_COUNT)
-    {
-
-    }
-
-
-
-    closedir(Newest_Dir);
-    fclose(room_file);
+    closedir(newest_dir);
 }
 
 
