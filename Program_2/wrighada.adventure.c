@@ -52,11 +52,14 @@ struct Room* Room_Arr[ROOM_COUNT];
 /* Array to hold the name of the newest directory that contains my prefix */
 char newestDirName[256];
 
+/* File to hold the currently requested time */
+char* time_file = "currentTime.txt";
+
 /* Lock for switching threads to display the time */
 pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* In game variables */
-int i;
+int i, j;
 int step_count = 0;
 
 
@@ -64,6 +67,8 @@ int step_count = 0;
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
 void Get_Newest_Dir();
+void Init_Room_Arr();
+void Fill_Room_Arr();
 void Game_Prompt();
 
 
@@ -71,14 +76,26 @@ void Game_Prompt();
 
 int main()
 {
+    /* Search the current directory for the newest subdirectory */
     Get_Newest_Dir();
     printf("Newest entry found is: %s\n", newestDirName);
 
-    /* The game loop */
+    /* Create and fill an array of struct rooms with the newest room data */
+    Init_Room_Arr();
+    Fill_Room_Arr();
+
+    /* Run the game loop */
     do
     {
         break;
     } while (true);
+
+    for (i = 0; i <  7; i++)
+    {
+        printf("Roomname %d: %s\n", i, Room_Arr[i]->name);
+    }
+
+
 
     /* Free the array of room structs */
     i = 0;
@@ -102,7 +119,7 @@ void Get_Newest_Dir()
   memset(newestDirName, '\0', sizeof(newestDirName)); /* newest directory that contains my prefix */
 
   DIR* dirToCheck; /*Holds the directory we're starting in */
-  struct dirent *fileInDir; /* Holds the current subdir of the starting dir */
+  struct dirent* fileInDir; /* Holds the current subdir of the starting dir */
   struct stat dirAttributes; /* Holds information we've gained about subdir */
 
   dirToCheck = opendir("."); /* Open up the directory this program was run in */
@@ -145,10 +162,26 @@ void Init_Room_Arr()
     }
 }
 
-/* Fills the rooms array with data from most recent directory */
-void Fill_Rooms_Arr()
+/* Fills the room array with data from most recent directory */
+void Fill_Room_Arr()
 {
+    int file_num = 0;
+    DIR* Newest_Dir = opendir(newestDirName);
+    struct dirent* file_in_dir;
 
+    while (file_in_dir = readdir(Newest_Dir))
+    {
+        if (file_in_dir->d_name[0] != '.')
+        {
+            Room_Arr[file_num]->name = file_in_dir->d_name;
+            file_num++;
+        }
+    }
+
+
+
+
+    closedir(Newest_Dir);
 }
 
 

@@ -36,11 +36,11 @@ struct Room
     char* name;
     char* type;
     int connect_count;
-    struct Room* out_connect[CONNECT_MAX];
+    struct Room *out_connect[CONNECT_MAX];
 };
 
 /* Array to hold the created rooms */
-struct Room* Room_Arr[ROOM_COUNT];
+struct Room *Room_Arr[ROOM_COUNT];
 
 /* Room arrays */
 char* room_names[ROOM_MAX] = 
@@ -67,14 +67,14 @@ char* room_types[3] =
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
-void CreateConnections(struct Room* room_arr[]);
-bool IsGraphFull(struct Room* room_arr[]);
-void AddRandomConnection(struct Room* room_arr[]);
-struct Room* GetRandomRoom(struct Room* room_arr[]);
-bool CanAddConnectionFrom(struct Room* x);
-bool ConnectionAlreadyExists(struct Room* x, struct Room* y);
-void ConnectRoom(struct Room* x, struct Room* y);
-bool IsSameRoom(struct Room* x, struct Room* y);
+void CreateConnections(struct Room *room_arr[]);
+bool IsGraphFull(struct Room *room_arr[]);
+void AddRandomConnection(struct Room *room_arr[]);
+struct Room* GetRandomRoom(struct Room *room_arr[]);
+bool CanAddConnectionFrom(struct Room *x);
+bool ConnectionAlreadyExists(struct Room *x, struct Room *y);
+void ConnectRoom(struct Room *x, struct Room *y);
+bool IsSameRoom(struct Room *x, struct Room *y);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -167,7 +167,7 @@ int main()
         sprintf(File_Name, "./%s/%s_room", Dir_Name, Room_Arr[i]->name);
 
         /* Create a new file */
-        FILE* new_file = fopen(File_Name, "w+");
+        FILE *new_file = fopen(File_Name, "w+");
         fprintf(new_file, "ROOM NAME: %s\n", Room_Arr[i]->name);
         
         /* Print the connections to the file */
@@ -198,7 +198,7 @@ int main()
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
 /* Create all connections in graph */
-void CreateConnections(struct Room* room_arr[])
+void CreateConnections(struct Room *room_arr[])
 {   
     /* Iterate through all of the created room structs and create the connections graph */
     while (IsGraphFull(room_arr) == false)
@@ -209,7 +209,7 @@ void CreateConnections(struct Room* room_arr[])
 
 
 /* Returns true if all rooms have 3 to 6 outbound connections, false otherwise */
-bool IsGraphFull(struct Room* room_arr[])
+bool IsGraphFull(struct Room *room_arr[])
 {
     int i = 0;
 
@@ -230,10 +230,10 @@ bool IsGraphFull(struct Room* room_arr[])
 
 
 /* Adds a random, valid outbound connection from a Room to another Room */
-void AddRandomConnection(struct Room* room_arr[])
+void AddRandomConnection(struct Room *room_arr[])
 {
-    struct Room* A;
-    struct Room* B;
+    struct Room *A;
+    struct Room *B;
 
     while (true)
     {
@@ -255,7 +255,7 @@ void AddRandomConnection(struct Room* room_arr[])
 
 
 /* Returns a random Room, does NOT validate if connection can be added */
-struct Room* GetRandomRoom(struct Room* room_arr[])
+struct Room *GetRandomRoom(struct Room *room_arr[])
 {   
     /* Set i to an int from 0 - 6 and select the i'th room from the array of structs */
     int i = rand() % ROOM_COUNT;
@@ -264,7 +264,7 @@ struct Room* GetRandomRoom(struct Room* room_arr[])
 
 
 /* Returns true if a connection can be added from Room x (< 6 outbound connections), false otherwise */
-bool CanAddConnectionFrom(struct Room* x)
+bool CanAddConnectionFrom(struct Room *x)
 {
     if (x->connect_count < CONNECT_MAX)
     {
@@ -278,7 +278,7 @@ bool CanAddConnectionFrom(struct Room* x)
 
 
 /* Returns true if a connection from Room x to Room y already exists, false otherwise */
-bool ConnectionAlreadyExists(struct Room* x, struct Room* y)
+bool ConnectionAlreadyExists(struct Room *x, struct Room *y)
 {
     int i = 0;
 
@@ -306,7 +306,7 @@ bool ConnectionAlreadyExists(struct Room* x, struct Room* y)
 
 
 /* Connects Rooms x and y together, does not check if this connection is valid */
-void ConnectRoom(struct Room* x, struct Room* y)
+void ConnectRoom(struct Room *x, struct Room *y)
 {
     int i = 0;
 
@@ -323,7 +323,7 @@ void ConnectRoom(struct Room* x, struct Room* y)
 
 
 /* Returns true if Rooms x and y are the same Room, false otherwise */
-bool IsSameRoom(struct Room* x, struct Room* y)
+bool IsSameRoom(struct Room *x, struct Room *y)
 {
     /* Room names are unique, so compare them to find if the rooms are the same */
     if (strcmp(x->name, y->name) == 0)
