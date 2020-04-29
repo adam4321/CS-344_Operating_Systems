@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <dirent.h>
+#include <pthread.h>
 
 
 /* Global Constants */
@@ -37,9 +38,6 @@ struct Room
     struct Room* out_connect[CONNECT_MAX];
 };
 
-/* Array to hold the created rooms */
-struct Room* Room_Arr[ROOM_COUNT];
-
 /* Array holding the 3 types of the rooms */
 char* room_types[3] = 
 {
@@ -47,6 +45,20 @@ char* room_types[3] =
     "END_ROOM",
     "MID_ROOM"
 };
+
+/* Array to hold the created rooms */
+struct Room* Room_Arr[ROOM_COUNT];
+
+/* Array to hold the name of the newest directory that contains my prefix */
+char newestDirName[256];
+
+/* Lock for switching threads to display the time */
+pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
+
+/* In game variables */
+int i;
+int step_count = 0;
+
 
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
@@ -60,7 +72,21 @@ void Game_Prompt();
 int main()
 {
     Get_Newest_Dir();
-    
+    printf("Newest entry found is: %s\n", newestDirName);
+
+    /* The game loop */
+    do
+    {
+        break;
+    } while (true);
+
+    /* Free the array of room structs */
+    i = 0;
+    while (i < ROOM_COUNT)
+    {
+        free(Room_Arr[i]);
+        i++;
+    }
 
     return 0;
 }
@@ -71,42 +97,60 @@ int main()
 /* Function that finds the most recent room directory */
 void Get_Newest_Dir()
 {
-  int newestDirTime = -1; // Modified timestamp of newest subdir examined
-  char targetDirPrefix[32] = "wrighada.rooms."; // Prefix we're looking for
-  char newestDirName[256]; // Holds the name of the newest dir that contains prefix
-  memset(newestDirName, '\0', sizeof(newestDirName));
+  int newestDirTime = -1; /* Modified timestamp of newest subdir examined */
+  char targetDirPrefix[32] = "wrighada.rooms."; /* Prefix we're looking for */
+  memset(newestDirName, '\0', sizeof(newestDirName)); /* newest directory that contains my prefix */
 
-  DIR* dirToCheck; // Holds the directory we're starting in
-  struct dirent *fileInDir; // Holds the current subdir of the starting dir
-  struct stat dirAttributes; // Holds information we've gained about subdir
+  DIR* dirToCheck; /*Holds the directory we're starting in */
+  struct dirent *fileInDir; /* Holds the current subdir of the starting dir */
+  struct stat dirAttributes; /* Holds information we've gained about subdir */
 
-  dirToCheck = opendir("."); // Open up the directory this program was run in
+  dirToCheck = opendir("."); /* Open up the directory this program was run in */
 
-  if (dirToCheck > 0) // Make sure the current directory could be opened
-  {
-    while ((fileInDir = readdir(dirToCheck)) != NULL) // Check each entry in dir
+    if (dirToCheck > 0) /* Make sure the current directory could be opened */
     {
-      if (strstr(fileInDir->d_name, targetDirPrefix) != NULL) // If entry has prefix
-      {
-        printf("Found the prefex: %s\n", fileInDir->d_name);
-        stat(fileInDir->d_name, &dirAttributes); // Get attributes of the entry
-
-        if ((int)dirAttributes.st_mtime > newestDirTime) // If this time is bigger
+        while ((fileInDir = readdir(dirToCheck)) != NULL) /* Check each entry in dir */
         {
-          newestDirTime = (int)dirAttributes.st_mtime;
-          memset(newestDirName, '\0', sizeof(newestDirName));
-          strcpy(newestDirName, fileInDir->d_name);
-          printf("Newer subdir: %s, new time: %d\n",
-                 fileInDir->d_name, newestDirTime);
+            if (strstr(fileInDir->d_name, targetDirPrefix) != NULL) /* If entry has prefix */
+            {
+                stat(fileInDir->d_name, &dirAttributes); /*Get attributes of the entry */
+
+                if ((int)dirAttributes.st_mtime > newestDirTime) /* If this time is bigger */
+                {
+                    newestDirTime = (int)dirAttributes.st_mtime;
+                    memset(newestDirName, '\0', sizeof(newestDirName));
+                    strcpy(newestDirName, fileInDir->d_name);
+                }
+            }
         }
-      }
     }
-  }
 
-  closedir(dirToCheck); // Close the directory we opened
-
-  printf("Newest entry found is: %s\n", newestDirName);
+  closedir(dirToCheck); /* Close the directory we opened */
 }
+
+
+/* Initialize memory for the room struct array */
+void Init_Room_Arr()
+{
+    /* Create space on the heap for the struct rooms array */
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        Room_Arr[i] = malloc(sizeof(struct Room));
+
+        /* Set all of the connection array values to 0 */
+        for (j = 0; j < CONNECT_MAX; j++)
+        {
+            Room_Arr[i]->out_connect[j] = NULL;
+        }
+    }
+}
+
+/* Fills the rooms array with data from most recent directory */
+void Fill_Rooms_Arr()
+{
+
+}
+
 
 /* Print the game menu */
 void Game_Prompt()
