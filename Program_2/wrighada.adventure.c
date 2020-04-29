@@ -32,10 +32,10 @@ typedef enum
 /* Definition for Room struct */
 struct Room
 {
-    char* name;
-    char* type;
+    char *name;
+    char *type;
     int connect_count;
-    struct Room* out_connect[CONNECT_MAX];
+    struct Room *out_connect[CONNECT_MAX];
 };
 
 /* Array holding the 3 types of the rooms */
@@ -47,7 +47,7 @@ char* room_types[3] =
 };
 
 /* Array to hold the created rooms */
-struct Room* Room_Arr[ROOM_COUNT];
+struct Room *Room_Arr[ROOM_COUNT];
 
 /* Array to hold the name of the newest directory that contains my prefix */
 char newestDirName[256];
@@ -59,7 +59,8 @@ char* time_file = "currentTime.txt";
 pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /* In game variables */
-int i, j;
+int i;
+int j;
 int step_count = 0;
 
 
@@ -115,8 +116,8 @@ void Get_Newest_Dir()
   char targetDirPrefix[32] = "wrighada.rooms."; /* Prefix we're looking for */
   memset(newestDirName, '\0', sizeof(newestDirName)); /* newest directory that contains my prefix */
 
-  DIR* dirToCheck; /*Holds the directory we're starting in */
-  struct dirent* fileInDir; /* Holds the current subdir of the starting dir */
+  DIR *dirToCheck; /*Holds the directory we're starting in */
+  struct dirent *fileInDir; /* Holds the current subdir of the starting dir */
   struct stat dirAttributes; /* Holds information we've gained about subdir */
 
   dirToCheck = opendir("."); /* Open up the directory this program was run in */
@@ -163,10 +164,11 @@ void Init_Room_Arr()
 void Fill_Room_Arr()
 {
     int file_num = 0;
-    DIR* Newest_Dir = opendir(newestDirName);
+    DIR *newest_dir = opendir(newestDirName);
     struct dirent* file_in_dir;
+    FILE *
 
-    while (file_in_dir = readdir(Newest_Dir))
+    while (file_in_dir = readdir(newest_dir))
     {
         if (file_in_dir->d_name[0] != '.')
         {
@@ -175,14 +177,16 @@ void Fill_Room_Arr()
         }
     }
 
-    for (i = 0; i <  7; i++)
+    i = 0;
+    while (i < ROOM_COUNT)
     {
-        printf("Roomname %d: %s\n", i, Room_Arr[i]->name);
+
     }
 
 
 
     closedir(Newest_Dir);
+    fclose(room_file);
 }
 
 

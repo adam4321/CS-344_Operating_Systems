@@ -33,8 +33,8 @@ typedef enum
 /* Definition for Room struct */
 struct Room
 {
-    char* name;
-    char* type;
+    char *name;
+    char *type;
     int connect_count;
     struct Room *out_connect[CONNECT_MAX];
 };
@@ -43,7 +43,7 @@ struct Room
 struct Room *Room_Arr[ROOM_COUNT];
 
 /* Room arrays */
-char* room_names[ROOM_MAX] = 
+char *room_names[ROOM_MAX] = 
 {
     "Cheese",
     "Dinosaur",
@@ -57,7 +57,7 @@ char* room_names[ROOM_MAX] =
     "Clock"
 };
 
-char* room_types[3] = 
+char *room_types[3] = 
 {
     "START_ROOM",
     "END_ROOM",
