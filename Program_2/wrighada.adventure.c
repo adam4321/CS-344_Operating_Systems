@@ -38,19 +38,15 @@ struct Room
     struct Room *out_connect[CONNECT_MAX];
 };
 
-/* Array holding the 3 types of the rooms */
-char* room_types[3] = 
-{
-    "START_ROOM",
-    "END_ROOM",
-    "MID_ROOM"
-};
 
 /* Array to hold the created rooms */
 struct Room *Room_Arr[ROOM_COUNT];
 
 /* Array to hold the name of the newest directory that contains my prefix */
 char newestDirName[256];
+
+/* Variable to hold the start room's index in Room_Arr */
+int start_index;
 
 /* File to hold the currently requested time */
 char* time_file = "currentTime.txt";
@@ -62,9 +58,10 @@ pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
 void Get_Newest_Dir();
-void Init_Room_Arr();
-void Fill_Room_Arr();
+void Init_Room_Arr(struct Room *Room_Arr[]);
+void Fill_Room_Arr(struct Room *Room_Arr[]);
 void Game_Prompt();
+void Free_Memory();
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -81,8 +78,18 @@ int main()
     printf("Newest entry found is: %s\n", newestDirName);
 
     /* Create and fill an array of struct rooms with the newest room data */
-    Init_Room_Arr();
-    Fill_Room_Arr();
+    Init_Room_Arr(Room_Arr);
+    Fill_Room_Arr(Room_Arr);
+
+
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        printf("Name %d: %s\t", i, Room_Arr[i]->name);
+        printf("Type: %s\n", Room_Arr[i]->type);
+    }
+
+
+    printf("Start index: %d\n", start_index);
 
     /* Run the game loop */
     do
@@ -93,14 +100,7 @@ int main()
 
 
 
-
-    /* Free the array of room structs */
-    i = 0;
-    while (i < ROOM_COUNT)
-    {
-        free(Room_Arr[i]);
-        i++;
-    }
+    Free_Memory();
 
     return 0;
 }
@@ -143,8 +143,8 @@ void Get_Newest_Dir()
 }
 
 
-/* Initialize memory for the room struct array */
-void Init_Room_Arr()
+/* Initialize heap memory for the struct room array */
+void Init_Room_Arr(struct Room *Room_Arr[])
 {
     int i = 0;
     int j = 0;
@@ -154,16 +154,22 @@ void Init_Room_Arr()
     {
         Room_Arr[i] = malloc(sizeof(struct Room));
 
+        Room_Arr[i]->name = malloc(16 * sizeof(char));
+        
+        Room_Arr[i]->type = malloc(16 * sizeof(char));
+        
+
         /* Set all of the connection array values to 0 */
         for (j = 0; j < CONNECT_MAX; j++)
         {
-            Room_Arr[i]->out_connect[j] = NULL;
+            Room_Arr[i]->out_connect[j] = calloc(16, sizeof(char));
         }
     }
 }
 
+
 /* Fills the room array with data from most recent directory */
-void Fill_Room_Arr()
+void Fill_Room_Arr(struct Room *Room_Arr[])
 {
     DIR *newest_dir = opendir(newestDirName);
     struct dirent *file_in_dir;
@@ -189,27 +195,35 @@ void Fill_Room_Arr()
             /* Split each line to pull the target data */
             while (fgets(line, sizeof(line), room_file))
             {
-
+                /* Split each line on whitespaces */
                 strtok(line, " ");
                 char *token_1 = strtok(NULL, " ");
                 char *token_2 = strtok(NULL, " ");
 
-                
+                /* Remove the final characters */
                 token_1[strlen(token_1) - 1] = '\0';
                 token_2[strlen(token_2) - 1] = '\0';
 
-
+                /* Assign the room name */
                 if (strstr(token_1, "NAME"))
                 {
-                    Room_Arr[file_num]->name = token_2;
-                    printf("Name: %s\t", Room_Arr[file_num]->name);
+                    strcpy(Room_Arr[file_num]->name, token_2);
                 }
+                /* Assign the room type */
                 if (strstr(token_1, "TYPE"))
                 {
-                    Room_Arr[file_num]->type = token_2;
-                    printf("Type:  %s\n", Room_Arr[file_num]->type);
+                    strcpy(Room_Arr[file_num]->type, token_2);
+
+                    /* Find the starting room */
+                    if (strcmp(token_2, "START_ROOM") == 0)
+                    {
+                        start_index = file_num;
+                    }
                 }
-                
+                if (strstr(token_1, "CONNECT"))
+                {
+
+                }
             }
             
             file_num++;
@@ -230,4 +244,24 @@ void Game_Prompt()
 }
 
 
+/* Free the array of room structs */
+void Free_Memory()
+{
+    int i;
+    int j;
+    
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+     
+        free(Room_Arr[i]->name);
 
+        free(Room_Arr[i]->type);
+
+        for (j = 0; j < CONNECT_MAX; j++)
+        {
+            free(Room_Arr[i]->out_connect[j]);
+        }
+        
+        free(Room_Arr[i]);
+    }
+}
