@@ -60,7 +60,7 @@ pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 void Get_Newest_Dir();
 void Init_Room_Arr(struct Room *Room_Arr[]);
 void Fill_Room_Arr(struct Room *Room_Arr[]);
-void Game_Loop();
+int Get_Room_Index(char *Room);
 void Free_Memory();
 
 
@@ -72,19 +72,23 @@ int main()
     int i;
     int j;
     struct Room *current_room;
+    int current_index;
     int step_count = 0;
     int rooms_visited[255];
     char input_buffer[255];
+    bool room_match = false;
     
 
     /* Search the current directory for the newest subdirectory */
     Get_Newest_Dir();
-    printf("Newest entry found is: %s\n", newestDirName);
 
     /* Create and fill an array of struct rooms with the newest room data */
     Init_Room_Arr(Room_Arr);
     Fill_Room_Arr(Room_Arr);
 
+
+    printf("\n");
+    printf("Newest entry found is: %s\n", newestDirName);
 
     for (i = 0; i < ROOM_COUNT; i++)
     {
@@ -97,14 +101,94 @@ int main()
         }
     }
 
+    printf("Start index: %d\n\n", start_index);
 
-    printf("Start index: %d\n", start_index);
 
-    // Game_Loop();
 
-    Free_Memory();
+    /* Enter the starting room into the visited array */
+    rooms_visited[step_count] = start_index;
 
-    return 0;
+    /* Set the struct room pointer to the starting room */
+    current_room = Room_Arr[start_index];
+
+    /* Begin the game loop */
+    do
+    {
+        printf("CURRENT LOCATION: %s\n", current_room->name);
+        printf("POSSIBLE CONNECTIONS:");
+
+        i = 0;
+
+        while (i < current_room->connect_count - 1)
+        {
+            printf(" %s,", current_room->out_connect[i]);
+            i++;
+        }
+
+        printf(" %s.\n", current_room->out_connect[i]);
+
+        memset(input_buffer, '\0', sizeof(input_buffer));
+
+        printf("WHERE TO? >");
+        scanf("%254s", input_buffer);
+        printf("\n");
+
+        if (strcmp(input_buffer, "time") == 0)
+        {
+
+
+            printf("\n");
+        }
+        else
+        {
+            i = 0;
+            room_match = false;
+            
+            while (i < current_room->connect_count)
+            {
+                
+
+                if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
+                {
+                    room_match = true;
+                    step_count++;
+                    rooms_visited[step_count] = Get_Room_Index(current_room->out_connect[i]);
+
+                    /* Update the index of the current room */
+                    current_index = rooms_visited[step_count];
+
+                    /* Set the struct room pointer to the current room */
+                    current_room = Room_Arr[current_index];
+
+                    if (strcmp(current_room->type, "END_ROOM") == 0)
+                    {
+                        printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
+                        printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count + 1);
+                        
+                        j = 0;
+                        while (j < step_count + 1)
+                        {
+                            printf("%s\n", Room_Arr[rooms_visited[j]]->name);
+                            j++;
+                        }
+
+                        /* Free the heap alocated objects */
+                        Free_Memory();
+
+                        /* End the program and return success signal */
+                        return 0;
+                    }
+                }
+
+                i++;
+            }
+            if (room_match == false)
+            {
+                printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
+            }
+        }
+
+    } while (true); 
 }
 
 
@@ -225,12 +309,12 @@ void Fill_Room_Arr(struct Room *Room_Arr[])
                         start_index = file_num;
                     }
                 }
+                /* Assign the connected rooms and connection count */
                 else
                 {
                     strcpy(Room_Arr[file_num]->out_connect[i], token_2);
-
-                    i++;
                     Room_Arr[file_num]->connect_count++;
+                    i++;
                 }
             }
             
@@ -243,70 +327,21 @@ void Fill_Room_Arr(struct Room *Room_Arr[])
 }
 
 
-/* Print the game menu */
-void Game_Loop()
+/* Returns the index of a struct room or -1 if it isn't found */
+int Get_Room_Index(char *str)
 {
-    // rooms_visited[step_count] = start_index;
+    int i = 0;
 
-    // do
-    // {
-    //     printf("CURRENT LOCATION: %s\n", current_room->name);
-    //     printf("POSSIBLE CONNECTIONS:");
+    while (i < ROOM_COUNT)
+    {
+        if (strcmp(Room_Arr[i]->name, str) == 0)
+        {
+            return i;
+        }
 
-    //     i = 0;
-    //     while (i < current_room->connect_count - 1)
-    //     {
-    //         printf(" %s ", Room_Arr[current_room->out_connect[i]->name]);
-    //         i++;
-    //     }
-
-    //     printf(" %s.\n", Room_Arr[current_room->out_connect[i]->name]);
-
-    //     memset(input_buffer, '\0', sizeof(input_buffer));
-
-    //     printf("WHERE TO? >");
-    //     scanf("%254s", input_buffer);
-    //     printf('\n');
-
-    //     if (strcmp(input_buffer, "time") == 0)
-    //     {
-
-
-    //         printf('\n');
-    //     }
-    //     else
-    //     {
-    //         i = 0;
-    //         while (i < current_room->connect_count)
-    //         {
-    //             if (strcmp(input_buffer, Room_Arr[current_room->out_connect[i]->name]) == 0)
-    //             {
-    //                 step_count++;
-
-
-
-    //                 if (strcmp(current_room->type, "END_ROOM") == 0)
-    //                 {
-    //                     printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
-    //                     printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count + 1);
-                        
-    //                     j = 0;
-    //                     while (j < current_steps + 1)
-    //                     {
-    //                         printf("%s\n", Room_Arr[rooms_visited[j]]->name);
-    //                         j++;
-    //                     }
-
-    //                     return;
-    //                 }
-    //             }
-    //         }
-
-    //         i++;
-    //     }
-        
-
-    // } while (true);
+        i++;
+    }
+    return -1;
 }
 
 
