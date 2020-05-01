@@ -53,6 +53,7 @@ void Init_Room_Arr(struct Room *Room_Arr[]);
 void Fill_Room_Arr(struct Room *Room_Arr[]);
 int Get_Room_Index(char *Room);
 void Free_Memory();
+void Print_Disgnostics();
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -78,22 +79,7 @@ int main()
     Fill_Room_Arr(Room_Arr);
 
 
-    printf("\n");
-    printf("Newest entry found is: %s\n", newestDirName);
-
-    for (i = 0; i < ROOM_COUNT; i++)
-    {
-        printf("Name %d: %s\t", i, Room_Arr[i]->name);
-        printf("Type: %s\n", Room_Arr[i]->type);
-        printf("Connect Count: %d\n", Room_Arr[i]->connect_count);
-        for (j = 0; j < CONNECT_MAX; j++)
-        {
-            printf("Connection %d: %s\n", j, Room_Arr[i]->out_connect[j]);
-        }
-    }
-
-    printf("Start index: %d\n\n", start_index);
-
+    Print_Disgnostics();
 
 
     /* Set the struct room pointer to the starting room */
@@ -356,4 +342,29 @@ void Free_Memory()
         
         free(Room_Arr[i]);
     }
+}
+
+
+/* Function to print the data gathered from the room files (Not called in release version) */
+void Print_Disgnostics()
+{
+    int i;
+    int j;
+
+    printf("\nNewest entry found is: %s\n\n", newestDirName);
+
+    /* Iterate through the struct room array and print data */
+    for (i = 0; i < ROOM_COUNT; i++)
+    {
+        printf("Name %d: %s\t", i, Room_Arr[i]->name);
+        printf("Type: %s\n", Room_Arr[i]->type);
+        printf("Connect Count: %d\n", Room_Arr[i]->connect_count);
+        for (j = 0; j < CONNECT_MAX; j++)
+        {
+            printf("Connection %d: %s\n", j, Room_Arr[i]->out_connect[j]);
+        }
+        printf("\n");
+    }
+
+    printf("Start index: %d\n\n", start_index);
 }
