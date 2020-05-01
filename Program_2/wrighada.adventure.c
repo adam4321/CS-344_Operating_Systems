@@ -60,14 +60,14 @@ void Free_Memory();
 int main()
 {
     /* In game variables */
-    int i;
-    int j;
-    struct Room *current_room;
-    int current_index;
-    int step_count = 0;
-    int rooms_visited[255];
-    char input_buffer[255];
-    bool room_match = false;
+    int i;                          /* Iterator */
+    int j;                          /* Iterator */
+    struct Room *current_room;      /* Struct Room pointer to the current room */
+    int current_index;              /* Index in Room_Arr of current_room  */
+    int step_count = 0;             /* The number of steps taken in the game */
+    int rooms_visited[255];         /* Array holding the indices of the rooms visited */
+    char input_buffer[255];         /* Array to hold the game input string */
+    bool room_match = false;        /* Bool holding result of strcmp with inputted string */
     
 
     /* Search the current directory for the newest subdirectory */
@@ -96,8 +96,8 @@ int main()
 
 
 
-    /* Enter the starting room into the visited array */
-    rooms_visited[step_count] = start_index;
+    // /* Enter the starting room into the visited array */
+    // rooms_visited[step_count] = start_index;
 
     /* Set the struct room pointer to the starting room */
     current_room = Room_Arr[start_index];
@@ -143,7 +143,6 @@ int main()
                 if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
                 {
                     room_match = true;
-                    step_count++;
                     rooms_visited[step_count] = Get_Room_Index(current_room->out_connect[i]);
 
                     /* Update the index of the current room */
@@ -151,6 +150,7 @@ int main()
 
                     /* Set the struct room pointer to the current room */
                     current_room = Room_Arr[current_index];
+                    step_count++;
 
                     if (strcmp(current_room->type, "END_ROOM") == 0)
                     {
@@ -158,7 +158,7 @@ int main()
                         printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count + 1);
                         
                         j = 0;
-                        while (j < step_count + 1)
+                        while (j < step_count)
                         {
                             printf("%s\n", Room_Arr[rooms_visited[j]]->name);
                             j++;
