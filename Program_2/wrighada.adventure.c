@@ -78,7 +78,7 @@ int main()
     Init_Room_Arr(Room_Arr);
     Fill_Room_Arr(Room_Arr);
 
-
+    /* REMOVE THIS BEFORE RELEASE - print the room data */
     Print_Disgnostics();
 
 
@@ -214,11 +214,8 @@ void Init_Room_Arr(struct Room *Room_Arr[])
     for (i = 0; i < ROOM_COUNT; i++)
     {
         Room_Arr[i] = malloc(sizeof(struct Room));
-
         Room_Arr[i]->name = malloc(16 * sizeof(char));
-        
         Room_Arr[i]->type = malloc(16 * sizeof(char));
-
         Room_Arr[i]->connect_count = 0;
 
         /* Set all of the connection array values to 0 */
@@ -332,7 +329,6 @@ void Free_Memory()
     {
      
         free(Room_Arr[i]->name);
-
         free(Room_Arr[i]->type);
 
         for (j = 0; j < CONNECT_MAX; j++)
@@ -359,6 +355,7 @@ void Print_Disgnostics()
         printf("Name %d: %s\t", i, Room_Arr[i]->name);
         printf("Type: %s\n", Room_Arr[i]->type);
         printf("Connect Count: %d\n", Room_Arr[i]->connect_count);
+
         for (j = 0; j < CONNECT_MAX; j++)
         {
             printf("Connection %d: %s\n", j, Room_Arr[i]->out_connect[j]);
