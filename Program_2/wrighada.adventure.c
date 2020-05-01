@@ -38,21 +38,12 @@ struct Room
     char *out_connect[CONNECT_MAX];
 };
 
-
-/* Array to hold the created rooms */
-struct Room *Room_Arr[ROOM_COUNT];
-
-/* Array to hold the name of the newest directory that contains my prefix */
-char newestDirName[256];
-
-/* Variable to hold the start room's index in Room_Arr */
-int start_index;
-
-/* File to hold the currently requested time */
-char* time_file = "currentTime.txt";
-
-/* Lock for switching threads to display the time */
-pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
+/* Global Variables */
+struct Room *Room_Arr[ROOM_COUNT];      /* Array to hold the created rooms */
+char newestDirName[256];                /* Array to hold the name of the newest directory */
+int start_index;                        /* Variable to hold the start room's index in Room_Arr */
+char* time_file = "currentTime.txt";    /* File to hold the currently requested time */
+pthread_mutex_t time_lock;              /* Lock for switching threads to display the time */
 
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
