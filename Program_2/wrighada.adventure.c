@@ -29,7 +29,7 @@ typedef enum
     true
 } bool;
 
-/* Definition for Room struct */
+/* Definition for the Room struct */
 struct Room
 {
     char *name;
@@ -125,11 +125,12 @@ int main()
             i++;
         }
 
+
         printf(" %s.\n", current_room->out_connect[i]);
+        printf("WHERE TO? >");
+
 
         memset(input_buffer, '\0', sizeof(input_buffer));
-
-        printf("WHERE TO? >");
         scanf("%254s", input_buffer);
         printf("\n");
 
@@ -143,7 +144,7 @@ int main()
         {
             i = 0;
             room_match = false;
-            
+
             while (i < current_room->connect_count)
             {
                 
@@ -303,7 +304,7 @@ void Fill_Room_Arr(struct Room *Room_Arr[])
                 {
                     strcpy(Room_Arr[file_num]->type, token_2);
 
-                    /* Find the starting room */
+                    /* Find the starting room and store the value */
                     if (strcmp(token_2, "START_ROOM") == 0)
                     {
                         start_index = file_num;
@@ -341,6 +342,8 @@ int Get_Room_Index(char *str)
 
         i++;
     }
+
+    /* This should not be reached because a room will be found */ 
     return -1;
 }
 
