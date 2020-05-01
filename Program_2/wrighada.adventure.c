@@ -96,9 +96,6 @@ int main()
 
 
 
-    // /* Enter the starting room into the visited array */
-    // rooms_visited[step_count] = start_index;
-
     /* Set the struct room pointer to the starting room */
     current_room = Room_Arr[start_index];
 
