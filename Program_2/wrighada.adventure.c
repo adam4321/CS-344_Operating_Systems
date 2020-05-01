@@ -152,7 +152,7 @@ int main()
                     if (strcmp(current_room->type, "END_ROOM") == 0)
                     {
                         printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
-                        printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count + 1);
+                        printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count);
                         
                         j = 0;
                         while (j < step_count)
