@@ -80,8 +80,8 @@ int main()
     Fill_Room_Arr(Room_Arr);
 
 
-    /* REMOVE THIS BEFORE RELEASE - print the room data */
-    Print_Disgnostics();
+    /* REMOVE THIS BEFORE RELEASE - print the current room data */
+    /* Print_Disgnostics(); */
 
 
     /* Set the struct room pointer to the starting room */
@@ -121,11 +121,11 @@ int main()
             
             char current_time[255];
 
-            // Get_Time(time_file, current_time);
+            Get_Time(time_file, current_time);
 
-            // printf("%s\n\n", current_time);
+            printf("%s\n\n", current_time);
 
-            printf("The time\n\n");
+            // printf("The time\n\n");
 
             /* Set the time_check flag, so that only WHERE TO? is printed */ 
             time_check = true;
