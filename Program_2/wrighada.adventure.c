@@ -21,6 +21,7 @@
 /* Global Constants */
 #define ROOM_COUNT  7
 #define CONNECT_MAX 6
+#define NUM_THREADS 2
 
 /* Definition for the bool type */
 typedef enum
@@ -43,8 +44,12 @@ struct Room *Room_Arr[ROOM_COUNT];      /* Array to hold the created rooms */
 char newestDirName[256];                /* Array to hold the name of the newest directory */
 int start_index;                        /* Variable to hold the start room's index in Room_Arr */
 char *time_file = "currentTime.txt";    /* File to hold the currently requested time */
-pthread_t tid[2];                       /* Two threads with the time file generation on tid[1] */
-pthread_mutex_t time_lock;              /* Lock for switching threads to display the time */
+pthread_t threads[NUM_THREADS];         /* Declare 2 threads */
+int result_code_1;                      /* Result code to test the main game thread */
+int result_code_2;                      /* Result code to test the time printing thread */
+
+/* Mutex for stopping time function until it is called */
+pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
@@ -53,7 +58,8 @@ void Get_Newest_Dir();
 void Init_Room_Arr(struct Room *Room_Arr[]);
 void Fill_Room_Arr(struct Room *Room_Arr[]);
 int Get_Room_Index(char *Room);
-void Time_To_File();
+void *Game_Loop(void *ptr);
+void *Time_To_File(void *ptr);
 void Time_From_File();
 void Free_Memory();
 void Print_Disgnostics();
@@ -63,18 +69,6 @@ void Print_Disgnostics();
 
 int main()
 {
-    /* In game variables */
-    int i;                          /* Iterator */
-    int j;                          /* Iterator */
-    struct Room *current_room;      /* Struct Room pointer to the current room */
-    int current_index;              /* Index in Room_Arr of current_room  */
-    int step_count = 0;             /* The number of steps taken in the game */
-    int rooms_visited[255];         /* Array holding the indices of the rooms visited */
-    char input_buffer[255];         /* Array to hold the game input string */
-    bool room_match = false;        /* Bool holding result of strcmp with inputted string */
-    bool time_check = false;        /* Bool to only print where to after time request */
-    
-
     /* Search the current directory for the newest subdirectory */
     Get_Newest_Dir();
 
@@ -82,109 +76,21 @@ int main()
     Init_Room_Arr(Room_Arr);
     Fill_Room_Arr(Room_Arr);
 
-
-    /* !! COMMENT OUT BEFORE RELEASE !! - prints the current room data */
+    /* !! COMMENT OUT BEFORE RELEASE !! - Prints the current room data */
     /* Print_Disgnostics(); */
-
 
     /* Move back into the parent directory */
     chdir("..");
 
-    /* Set the struct room pointer to the starting room */
-    current_room = Room_Arr[start_index];
+    /* Create the main game thread and join it */
+    pthread_create(&threads[0], NULL, Game_Loop, NULL);
+    pthread_join(threads[0], NULL);
+    
+    /* Free the alocated objects */
+    // pthread_mutex_destroy(&time_lock);
+    Free_Memory();
 
-    /* Begin the game loop and loop until the end room is reached */
-    do
-    {
-        /* Only print the location and connections if not following a time request */
-        if (time_check == false)
-        {
-            printf("CURRENT LOCATION: %s\n", current_room->name);
-            printf("POSSIBLE CONNECTIONS:");
-
-            /* Print the room's connections with the correct formatting */
-            i = 0;
-            while (i < current_room->connect_count - 1)
-            {
-                printf(" %s,", current_room->out_connect[i]);
-                i++;
-            }
-            printf(" %s.\n", current_room->out_connect[i]);
-        }
-
-        /* Reset the time_check flag to print location and connections on next loop */
-        time_check = false;
-        printf("WHERE TO? >");
-
-        /* Clear the input array and get the user's input */
-        memset(input_buffer, '\0', sizeof(input_buffer));
-        scanf("%254s", input_buffer);
-        printf("\n");
-
-        /* Print the time when requested */
-        if (strcmp(input_buffer, "time") == 0)
-        {
-            /* Enter time into currentTime.txt and retrieve and print it */
-            Time_To_File();
-            Time_From_File();
-
-            /* Set the time_check flag, so that only WHERE TO? is printed */ 
-            time_check = true;
-            continue;
-        }
-        /* Test the room request against the possible connections */
-        else
-        {
-            i = 0;
-            room_match = false;
-
-            while (i < current_room->connect_count)
-            {
-                /* If a match is found then move to the new room */
-                if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
-                {
-                    room_match = true;
-                    rooms_visited[step_count] = Get_Room_Index(current_room->out_connect[i]);
-
-                    /* Update the index of the current room */
-                    current_index = rooms_visited[step_count];
-
-                    /* Set the struct room pointer to the current room */
-                    current_room = Room_Arr[current_index];
-                    step_count++;
-
-                    /* If the end room is requested, then end the game */
-                    if (strcmp(current_room->type, "END_ROOM") == 0)
-                    {
-                        printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
-                        printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count);
-                        
-                        /* Print the rooms visited in the game */
-                        j = 0;
-                        while (j < step_count)
-                        {
-                            printf("%s\n", Room_Arr[rooms_visited[j]]->name);
-                            j++;
-                        }
-
-                        /* Free the heap alocated objects */
-                        Free_Memory();
-
-                        /* End the program and return successful status */
-                        return 0;
-                    }
-                }
-
-                i++;
-            }
-            /* If no match then prompt the user to try again */
-            if (room_match == false)
-            {
-                printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
-            }
-        }
-
-    } while (true); 
+    return 0;
 }
 
 
@@ -342,9 +248,134 @@ int Get_Room_Index(char *str)
 }
 
 
-/* Print the current time into currentTime.txt */
-void Time_To_File()
+/* The function which runs the game loop - It is threads[0] */
+void *Game_Loop(void *ptr)
 {
+    /* Lock the main thread */
+    pthread_mutex_lock(&time_lock);
+
+    int i;                          /* Iterator */
+    int j;                          /* Iterator */
+    int current_index;              /* Index in Room_Arr of current_room  */
+    int step_count = 0;             /* The number of steps taken in the game */
+    struct Room *current_room;      /* Struct Room pointer to the current room */
+    int rooms_visited[255];         /* Array holding the indices of the rooms visited */
+    char input_buffer[255];         /* Array to hold the game input string */
+    bool room_match = false;        /* Bool holding result of strcmp with inputted string */
+    bool time_check = false;        /* Bool to only print where to after time request */
+
+    /* Set the struct room pointer to the starting room */
+    current_room = Room_Arr[start_index];
+
+    /* Loop until the end room is reached */
+    do
+    {
+        /* Only print the location and connections if not following a time request */
+        if (time_check == false)
+        {
+            printf("CURRENT LOCATION: %s\n", current_room->name);
+            printf("POSSIBLE CONNECTIONS:");
+
+            /* Print the room's connections with the correct formatting */
+            i = 0;
+            while (i < current_room->connect_count - 1)
+            {
+                printf(" %s,", current_room->out_connect[i]);
+                i++;
+            }
+            printf(" %s.\n", current_room->out_connect[i]);
+        }
+
+        /* Reset the time_check flag to print location and connections on next loop */
+        time_check = false;
+        printf("WHERE TO? >");
+
+        /* Clear the input array and get the user's input */
+        memset(input_buffer, '\0', sizeof(input_buffer));
+        scanf("%254s", input_buffer);
+        printf("\n");
+
+        /* Print the time when requested */
+        if (strcmp(input_buffer, "time") == 0)
+        {
+            /* Create the second time thread */
+            pthread_create(&threads[1], NULL, Time_To_File, NULL);
+
+            /* Unlock the main thread to let the time thread print */
+            pthread_mutex_unlock(&time_lock);
+
+            /* Join the time thread */
+            pthread_join(threads[1], NULL);
+
+            /* Relock the main thread after the time was printed */
+            pthread_mutex_lock(&time_lock);
+
+            /* Print the time gathered in thread two */
+            Time_From_File();
+
+            /* Set the time_check flag, so that only WHERE TO? is printed */ 
+            time_check = true;
+            continue;
+        }
+        /* Test the room request against the possible connections */
+        else
+        {
+            i = 0;
+            room_match = false;
+
+            while (i < current_room->connect_count)
+            {
+                /* If a match is found then move to the new room */
+                if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
+                {
+                    room_match = true;
+                    rooms_visited[step_count] = Get_Room_Index(current_room->out_connect[i]);
+
+                    /* Update the index of the current room */
+                    current_index = rooms_visited[step_count];
+
+                    /* Set the struct room pointer to the current room */
+                    current_room = Room_Arr[current_index];
+                    step_count++;
+
+                    /* If the end room is requested, then end the game */
+                    if (strcmp(current_room->type, "END_ROOM") == 0)
+                    {
+                        printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
+                        printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count);
+                        
+                        /* Print the rooms visited in the game */
+                        j = 0;
+                        while (j < step_count)
+                        {
+                            printf("%s\n", Room_Arr[rooms_visited[j]]->name);
+                            j++;
+                        }
+
+                        /* End the game */
+                        return NULL;
+                    }
+                }
+
+                i++;
+            }
+            /* If no match then prompt the user to try again */
+            if (room_match == false)
+            {
+                printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
+            }
+        }
+
+    } while (true); 
+}
+
+
+/* Print the current time into currentTime.txt - It is threads[1] */
+void *Time_To_File(void *ptr)
+{
+    /* Try to establish the lock */
+    pthread_mutex_lock(&time_lock);
+
     /* Open the time file to accept the time/date string */
     char time_buffer[255];
     FILE *time_file_instance = fopen(time_file, "w");
@@ -359,6 +390,9 @@ void Time_To_File()
     strftime(time_buffer, sizeof(time_buffer), "%l:%M%P, %A, %B%e, %Y", time_ptr);
     fprintf(time_file_instance, "%s\n", time_buffer);
     fclose(time_file_instance);
+
+    /* Unlock the mutex */
+    pthread_mutex_unlock(&time_lock);
 }
 
 
