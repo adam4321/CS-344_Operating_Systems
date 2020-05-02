@@ -43,6 +43,7 @@ struct Room *Room_Arr[ROOM_COUNT];      /* Array to hold the created rooms */
 char newestDirName[256];                /* Array to hold the name of the newest directory */
 int start_index;                        /* Variable to hold the start room's index in Room_Arr */
 char* time_file = "currentTime.txt";    /* File to hold the currently requested time */
+pthread_t tid[2];                       /* Two threads with the time file generation on tid[1] */
 pthread_mutex_t time_lock;              /* Lock for switching threads to display the time */
 
 
@@ -52,6 +53,8 @@ void Get_Newest_Dir();
 void Init_Room_Arr(struct Room *Room_Arr[]);
 void Fill_Room_Arr(struct Room *Room_Arr[]);
 int Get_Room_Index(char *Room);
+void Time_To_File();
+void Time_From_File();
 void Free_Memory();
 void Print_Disgnostics();
 
@@ -118,11 +121,12 @@ int main()
         /* Print the time when requested */
         if (strcmp(input_buffer, "time") == 0)
         {
-            
+            /* Enter time into currentTime.txt and return it to current_time */
             char current_time[255];
-
-            Get_Time(time_file, current_time);
-
+            Time_To_File();
+            Time_From_File();
+            
+            /* Print the current time in the game */
             printf("%s\n\n", current_time);
 
             // printf("The time\n\n");
@@ -336,6 +340,20 @@ int Get_Room_Index(char *str)
 
     /* This should not be reached because a room will be found */ 
     return -1;
+}
+
+
+/* Print the current time into currentTime.txt */
+void Time_To_File()
+{
+
+}
+
+
+/* Retrieve the current time from currentTime.txt */
+void Time_To_File()
+{
+    
 }
 
 
