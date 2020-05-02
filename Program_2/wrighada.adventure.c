@@ -346,7 +346,17 @@ int Get_Room_Index(char *str)
 /* Print the current time into currentTime.txt */
 void Time_To_File()
 {
+    FILE *time_file_instance = fopen(time_file, "w");
 
+    time_t t;
+    struct tm *time;
+    char time_buffer[255];
+    time(&t);
+    time = localtime(&t);
+    strftime(time_buffer, sizeof(time_buffer), "%1:%M%P, %A, %B, %e, %Y", time);
+
+    fprintf(time_file_instance, "%s\n", time_buffer);
+    fclose(time_file_instance);
 }
 
 
