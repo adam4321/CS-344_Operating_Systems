@@ -69,6 +69,7 @@ int main()
     int rooms_visited[255];         /* Array holding the indices of the rooms visited */
     char input_buffer[255];         /* Array to hold the game input string */
     bool room_match = false;        /* Bool holding result of strcmp with inputted string */
+    bool time_check = false;        /* Bool to only print where to after time request */
     
 
     /* Search the current directory for the newest subdirectory */
@@ -78,6 +79,7 @@ int main()
     Init_Room_Arr(Room_Arr);
     Fill_Room_Arr(Room_Arr);
 
+
     /* REMOVE THIS BEFORE RELEASE - print the room data */
     Print_Disgnostics();
 
@@ -85,35 +87,51 @@ int main()
     /* Set the struct room pointer to the starting room */
     current_room = Room_Arr[start_index];
 
-    /* Begin the game loop */
+    /* Begin the game loop and loop until the end room is reached */
     do
     {
-        printf("CURRENT LOCATION: %s\n", current_room->name);
-        printf("POSSIBLE CONNECTIONS:");
-
-        i = 0;
-
-        while (i < current_room->connect_count - 1)
+        /* Only print the location and connections if not following a time request */
+        if (time_check == false)
         {
-            printf(" %s,", current_room->out_connect[i]);
-            i++;
+            printf("CURRENT LOCATION: %s\n", current_room->name);
+            printf("POSSIBLE CONNECTIONS:");
+
+            /* Print the room's connections with the correct formatting */
+            i = 0;
+            while (i < current_room->connect_count - 1)
+            {
+                printf(" %s,", current_room->out_connect[i]);
+                i++;
+            }
+            printf(" %s.\n", current_room->out_connect[i]);
         }
 
-
-        printf(" %s.\n", current_room->out_connect[i]);
+        /* Reset the time_check flag to print location and connections on next loop */
+        time_check = false;
         printf("WHERE TO? >");
 
-
+        /* Clear the input array and get the user's input */
         memset(input_buffer, '\0', sizeof(input_buffer));
         scanf("%254s", input_buffer);
         printf("\n");
 
+        /* Print the time when requested */
         if (strcmp(input_buffer, "time") == 0)
         {
+            
+            char current_time[255];
 
+            // Get_Time(time_file, current_time);
 
-            printf("\n");
+            // printf("%s\n\n", current_time);
+
+            printf("The time\n\n");
+
+            /* Set the time_check flag, so that only WHERE TO? is printed */ 
+            time_check = true;
+            continue;
         }
+        /* Test the room request against the possible connections */
         else
         {
             i = 0;
@@ -121,8 +139,6 @@ int main()
 
             while (i < current_room->connect_count)
             {
-                
-
                 if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
                 {
                     room_match = true;
@@ -135,11 +151,13 @@ int main()
                     current_room = Room_Arr[current_index];
                     step_count++;
 
+                    /* If the end room is requested, then end the game */
                     if (strcmp(current_room->type, "END_ROOM") == 0)
                     {
                         printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
                         printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", step_count);
                         
+                        /* Print the rooms visited in the game */
                         j = 0;
                         while (j < step_count)
                         {
@@ -150,13 +168,14 @@ int main()
                         /* Free the heap alocated objects */
                         Free_Memory();
 
-                        /* End the program and return success signal */
+                        /* End the program and return successful status */
                         return 0;
                     }
                 }
 
                 i++;
             }
+            /* If no match then prompt the user */
             if (room_match == false)
             {
                 printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
