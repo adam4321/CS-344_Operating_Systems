@@ -139,6 +139,7 @@ int main()
 
             while (i < current_room->connect_count)
             {
+                /* If a match is found then move to the new room */
                 if (strcmp(input_buffer, current_room->out_connect[i]) == 0)
                 {
                     room_match = true;
