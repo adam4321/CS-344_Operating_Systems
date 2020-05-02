@@ -83,8 +83,8 @@ int main()
     Fill_Room_Arr(Room_Arr);
 
 
-    /* REMOVE THIS BEFORE RELEASE - print the current room data */
-    Print_Disgnostics();
+    /* !! COMMENT OUT BEFORE RELEASE !! - prints the current room data */
+    /* Print_Disgnostics(); */
 
 
     /* Move back into the parent directory */
@@ -177,7 +177,7 @@ int main()
 
                 i++;
             }
-            /* If no match then prompt the user */
+            /* If no match then prompt the user to try again */
             if (room_match == false)
             {
                 printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
@@ -190,7 +190,7 @@ int main()
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
-/* Function that finds the most recent room directory */
+/* Function that finds the most recent room directory for building out the rooms array */
 void Get_Newest_Dir()
 {
   int newestDirTime = -1; /* Modified timestamp of newest subdir examined */
@@ -215,7 +215,7 @@ void Get_Newest_Dir()
                 {
                     newestDirTime = (int)dirAttributes.st_mtime;
                     memset(newestDirName, '\0', sizeof(newestDirName));
-                    strcpy(newestDirName, fileInDir->d_name);
+                    strcpy(newestDirName, fileInDir->d_name); /* Store the directory */
                 }
             }
         }
@@ -311,6 +311,7 @@ void Fill_Room_Arr(struct Room *Room_Arr[])
                 }
             }
             
+            /* Increment the iterator and close the previous file */
             file_num++;
             fclose(room_file);
         }
@@ -325,6 +326,7 @@ int Get_Room_Index(char *str)
 {
     int i = 0;
 
+    /* Find the name of the room passed in and return it's index */
     while (i < ROOM_COUNT)
     {
         if (strcmp(Room_Arr[i]->name, str) == 0)
@@ -343,15 +345,17 @@ int Get_Room_Index(char *str)
 /* Print the current time into currentTime.txt */
 void Time_To_File()
 {
-
+    /* Open the time file to accept the time/date string */
     char time_buffer[255];
     FILE *time_file_instance = fopen(time_file, "w");
+    
+    /* Retrieve the current local time */
     time_t t;
     struct tm *time_ptr;
     time(&t);
     time_ptr = localtime(&t);
 
-
+    /* Format the current time and enter it into the open file */
     strftime(time_buffer, sizeof(time_buffer), "%l:%M%P, %A, %B%e, %Y", time_ptr);
     fprintf(time_file_instance, "%s\n", time_buffer);
     fclose(time_file_instance);
@@ -367,7 +371,7 @@ void Time_From_File()
     fgets(current_time, sizeof(current_time), time_file_instance);
     fclose(time_file_instance);
 
-    /* Print the current time in the game */
+    /* Print the current time within the game */
     printf("%s\n", current_time);
 }
 
@@ -378,6 +382,7 @@ void Free_Memory()
     int i;
     int j;
     
+    /* Free the pointers within the array first */
     for (i = 0; i < ROOM_COUNT; i++)
     {
      
@@ -389,6 +394,7 @@ void Free_Memory()
             free(Room_Arr[i]->out_connect[j]);
         }
         
+        /* Free the struct room array itself */
         free(Room_Arr[i]);
     }
 }
@@ -400,9 +406,10 @@ void Print_Disgnostics()
     int i;
     int j;
 
+    /* Print the name of the newest directory */
     printf("\nNewest entry found is: %s\n\n", newestDirName);
 
-    /* Iterate through the struct room array and print data */
+    /* Iterate through the struct room array and print it's data */
     for (i = 0; i < ROOM_COUNT; i++)
     {
         printf("Name %d: %s\t", i, Room_Arr[i]->name);
@@ -416,5 +423,6 @@ void Print_Disgnostics()
         printf("\n");
     }
 
+    /* Print the index within Room_Arr of the start room */
     printf("Start index: %d\n\n", start_index);
 }
