@@ -42,7 +42,7 @@ struct Room
 struct Room *Room_Arr[ROOM_COUNT];      /* Array to hold the created rooms */
 char newestDirName[256];                /* Array to hold the name of the newest directory */
 int start_index;                        /* Variable to hold the start room's index in Room_Arr */
-char* time_file = "currentTime.txt";    /* File to hold the currently requested time */
+char *time_file = "currentTime.txt";    /* File to hold the currently requested time */
 pthread_t tid[2];                       /* Two threads with the time file generation on tid[1] */
 pthread_mutex_t time_lock;              /* Lock for switching threads to display the time */
 
@@ -84,8 +84,11 @@ int main()
 
 
     /* REMOVE THIS BEFORE RELEASE - print the current room data */
-    /* Print_Disgnostics(); */
+    Print_Disgnostics();
 
+
+    /* Move back into the parent directory */
+    chdir("..");
 
     /* Set the struct room pointer to the starting room */
     current_room = Room_Arr[start_index];
@@ -121,15 +124,9 @@ int main()
         /* Print the time when requested */
         if (strcmp(input_buffer, "time") == 0)
         {
-            /* Enter time into currentTime.txt and return it to current_time */
-            char current_time[255];
+            /* Enter time into currentTime.txt and retrieve and print it */
             Time_To_File();
             Time_From_File();
-            
-            /* Print the current time in the game */
-            printf("%s\n\n", current_time);
-
-            // printf("The time\n\n");
 
             /* Set the time_check flag, so that only WHERE TO? is printed */ 
             time_check = true;
@@ -346,24 +343,32 @@ int Get_Room_Index(char *str)
 /* Print the current time into currentTime.txt */
 void Time_To_File()
 {
-    FILE *time_file_instance = fopen(time_file, "w");
 
-    time_t t;
-    struct tm *time;
     char time_buffer[255];
+    FILE *time_file_instance = fopen(time_file, "w");
+    time_t t;
+    struct tm *time_ptr;
     time(&t);
-    time = localtime(&t);
-    strftime(time_buffer, sizeof(time_buffer), "%1:%M%P, %A, %B, %e, %Y", time);
+    time_ptr = localtime(&t);
 
+
+    strftime(time_buffer, sizeof(time_buffer), "%l:%M%P, %A, %B%e, %Y", time_ptr);
     fprintf(time_file_instance, "%s\n", time_buffer);
     fclose(time_file_instance);
 }
 
 
 /* Retrieve the current time from currentTime.txt */
-void Time_To_File()
+void Time_From_File()
 {
-    
+    /* Retrieve the time/date line and close the file */
+    char current_time[255];
+    FILE *time_file_instance = fopen(time_file, "r");
+    fgets(current_time, sizeof(current_time), time_file_instance);
+    fclose(time_file_instance);
+
+    /* Print the current time in the game */
+    printf("%s\n", current_time);
 }
 
 
