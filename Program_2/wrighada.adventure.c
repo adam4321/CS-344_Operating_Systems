@@ -48,7 +48,7 @@ pthread_t threads[NUM_THREADS];         /* Declare 2 threads */
 int result_code_1;                      /* Result code to test the main game thread */
 int result_code_2;                      /* Result code to test the time printing thread */
 
-/* Mutex for stopping time function until it is called */
+/* Mutex for stopping the time function until it is released */
 pthread_mutex_t time_lock = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -86,8 +86,7 @@ int main()
     pthread_create(&threads[0], NULL, Game_Loop, NULL);
     pthread_join(threads[0], NULL);
     
-    /* Free the alocated objects */
-    // pthread_mutex_destroy(&time_lock);
+    /* Free the heap allocated objects */
     Free_Memory();
 
     return 0;
@@ -416,10 +415,9 @@ void Free_Memory()
     int i;
     int j;
     
-    /* Free the pointers within the array first */
+    /* Free the pointers within the structs first */
     for (i = 0; i < ROOM_COUNT; i++)
     {
-     
         free(Room_Arr[i]->name);
         free(Room_Arr[i]->type);
 
@@ -428,7 +426,7 @@ void Free_Memory()
             free(Room_Arr[i]->out_connect[j]);
         }
         
-        /* Free the struct room array itself */
+        /* Free the struct in the room array itself */
         free(Room_Arr[i]);
     }
 }
