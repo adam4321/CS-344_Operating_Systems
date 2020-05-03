@@ -95,7 +95,11 @@ int main()
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
-/* Function that finds the most recent room directory for building out the rooms array */
+/*
+*  Function:     void Get_Newest_Dir()
+*  Description:  Function that finds the most recent room directory for building
+*                out the rooms array
+*/
 void Get_Newest_Dir()
 {
   int newestDirTime = -1; /* Modified timestamp of newest subdir examined */
@@ -130,7 +134,10 @@ void Get_Newest_Dir()
 }
 
 
-/* Initialize heap memory for the struct room array */
+/*
+*  Function:     void Init_Room_Arr()   
+*  Description:  Initialize heap memory for the struct room array
+*/
 void Init_Room_Arr(struct Room *Room_Arr[])
 {
     int i = 0;
@@ -153,7 +160,10 @@ void Init_Room_Arr(struct Room *Room_Arr[])
 }
 
 
-/* Fills the room array with data from most recent directory */
+/*
+*  Function:     void Fill_Room_Arr()
+*  Description:  Fills the room array with data from most recent directory
+*/
 void Fill_Room_Arr(struct Room *Room_Arr[])
 {
     DIR *newest_dir = opendir(newestDirName);
@@ -226,7 +236,11 @@ void Fill_Room_Arr(struct Room *Room_Arr[])
 }
 
 
-/* Returns the index of a struct room or -1 if it isn't found */
+/*
+*  Function:     int Get_Room_Index(char *str)
+*  Description:  Returns the index of a struct room or -1 if it isn't found.
+*                It should never return -1 during normal operation.
+*/
 int Get_Room_Index(char *str)
 {
     int i = 0;
@@ -247,7 +261,11 @@ int Get_Room_Index(char *str)
 }
 
 
-/* The function which runs the game loop - It is threads[0] */
+/*
+*  Function:     void *Game_Loop(void *ptr)
+*  Description:  The function which runs the game loop. It is the main thread
+*                which is threads[0]
+*/
 void *Game_Loop(void *ptr)
 {
     /* Lock the main thread */
@@ -369,7 +387,13 @@ void *Game_Loop(void *ptr)
 }
 
 
-/* Print the current time into currentTime.txt - It is threads[1] */
+/*
+*  Function:     void *Time_To_File(void *ptr)
+*  Description:  Prints the current time into currentTime.txt. It is runs as 
+*                the second thread which is threads[1]. It can only run when
+*                a mutex in the Game_Loop is released. This creates the correct
+*                timing for generating an accurate current time.
+*/
 void *Time_To_File(void *ptr)
 {
     /* Try to establish the lock */
@@ -395,7 +419,10 @@ void *Time_To_File(void *ptr)
 }
 
 
-/* Retrieve the current time from currentTime.txt */
+/*
+*  Function:     void Time_From_File()
+*  Description:  Retrieve the current time from currentTime.txt
+*/
 void Time_From_File()
 {
     /* Retrieve the time/date line and close the file */
@@ -409,7 +436,10 @@ void Time_From_File()
 }
 
 
-/* Free the array of room structs */
+/*
+*  Function:     void Free_Memory()
+*  Description:  Free the array of room structs and each room's internal pointers
+*/
 void Free_Memory()
 {
     int i;
@@ -432,7 +462,12 @@ void Free_Memory()
 }
 
 
-/* Function to print the data gathered from the room files (Not called in release version) */
+/*
+*  Function:     void Print_Diagnostics()
+*  Description:  Function to print the data gathered from the room files.
+*                This function is for testing and is NOT called in the release
+*                version. It MUST be commented out when testing is over!
+*/
 void Print_Disgnostics()
 {
     int i;
