@@ -15,6 +15,8 @@
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
+void change_dir(char **arg_arr);
+
 
 /* MAIN ---------------------------------------------------------------------*/
 
@@ -28,4 +30,22 @@ int main()
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
+void change_dir(char **arg_arr)
+{
+    char *dir;
 
+    if (arg_arr[1] == NULL)
+    {
+        dir = getenv("HOME");
+        chdir(dir);
+    }
+    else
+    {
+        dir = arg_arr[1];
+    }
+    
+    if (chdir != NULL)
+    {
+        printf("Invalid directory name.\n");
+    }
+}
