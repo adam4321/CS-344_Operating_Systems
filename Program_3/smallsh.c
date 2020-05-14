@@ -9,12 +9,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
 
+#define BUF_SIZE    2049    // Maximum number of characters supported
+#define ARG_CNT     513     // Maximum number of commands supported
+
+
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
+void get_status(int status);
 void change_dir(char **arg_arr);
 
 
@@ -22,7 +28,16 @@ void change_dir(char **arg_arr);
 
 int main()
 {
+    
+    // Start the shell and keep it running
+    while (true)
+    {
+        printf(": ");
+        fflush(stdout);
+        fflush(stderr);
 
+
+    }
 
     return 0;
 }
@@ -30,21 +45,40 @@ int main()
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
+// Print the exit value or the terminating signal
+void get_status(int status)
+{
+    if (WIFEXITED(status))
+    {
+        printf("exit value %i\n", WEXITSTATUS(status));
+    }
+    else
+    {
+        printf("terminated by signal %i", status);
+    }
+    
+}
+
+
+// Implementation of the built-in cd for changing directories
 void change_dir(char **arg_arr)
 {
     char *dir;
 
-    if (arg_arr[1] == NULL)
+    // If no directory is requested then change to user home directory
+    if (arg_arr[1] == 0)
     {
         dir = getenv("HOME");
         chdir(dir);
     }
+    // If a directory argument exists, then change to that directory
     else
     {
         dir = arg_arr[1];
+        chdir(dir);
     }
-    
-    if (chdir != NULL)
+    // If failed, then print an error
+    if (chdir(dir) != 0)
     {
         printf("Invalid directory name.\n");
     }
