@@ -18,7 +18,7 @@
 #define BUF_SIZE    2049    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
 
-bool is_fg_only = false;
+bool is_fg_only = false;    // Bool to hold the state of foreground only mode
 
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
@@ -47,7 +47,7 @@ int main()
         char *user_input = get_input();
 
         // Skip any comments or blank lines
-        if (strncmp(user_input, "#", 1) == 0 || strncmp(user_input, "\0", 1) == 0)
+        if (strncmp(user_input, "#", 1) == 0 || strncmp(user_input, " ", 1) == 0)
         {
             continue;
         }
