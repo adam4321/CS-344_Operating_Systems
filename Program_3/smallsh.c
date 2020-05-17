@@ -53,6 +53,7 @@ int main()
             continue;
         }
 
+        // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
 
         // Check for and exit command
