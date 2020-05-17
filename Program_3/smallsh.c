@@ -34,12 +34,13 @@ void free_memory(char *user_input);
 
 int main()
 {
-    char *arg_arr[MAX_ARGS];                            // Array of strings to hold CLI arguments
-    char *in_file = NULL;                               // Input file pointer
-    char *out_file = NULL;                              // Output file pointer
+    int arg_count = 0;          // Value to hold the number of tokens entered
+    char *current_arg;          // String to hold each token to be parsed
+    char *arg_arr[MAX_ARGS];    // Array of strings to hold CLI arguments
+    char *in_file = NULL;       // Input file pointer
+    char *out_file = NULL;      // Output file pointer
 
 
-    
     // Start the shell and keep it running
     while (true)
     {
@@ -52,18 +53,30 @@ int main()
             continue;
         }
 
-        // // Check for and exit command
-        // if (strcmp(arg_arr[0], "exit") == 0)
-        // {
-        //     // Free memory
+        current_arg = strtok(user_input, " \n");
+
+        // Check for and exit command
+        if (strcmp(current_arg, "exit") == 0)
+        {
+            // Free memory
 
 
-        //     exit(EXIT_SUCCESS);
-        // }
+            exit(EXIT_SUCCESS);
+        }
+
+        arg_count = 0;
+
+        while (current_arg != NULL)
+        {
+
+        }
+
+
 
 
         printf("%s", user_input);
         free_memory(user_input);
+
         return 0;
     }
 
