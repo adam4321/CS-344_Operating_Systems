@@ -59,7 +59,7 @@ int main()
         if (strcmp(current_arg, "exit") == 0)
         {
             // Free memory
-
+            free_memory(user_input);
 
             exit(EXIT_SUCCESS);
         }
