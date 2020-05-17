@@ -26,43 +26,45 @@ bool is_fg_only = false;
 void catchSIGINT(int signo);
 void change_dir(char **arg_arr);
 void get_status(int status);
+char *get_input();
+void free_memory(char *user_input);
 
 
 /* MAIN ---------------------------------------------------------------------*/
 
 int main()
 {
-    char *input_buf = malloc(BUF_SIZE);     // String for CLI input
-    char *arg_arr[MAX_ARGS];                // Array of strings to hold CLI arguments
-    char *in_file = NULL;                   // Input file pointer
-    char *out_file = NULL;                  // Output file pointer
+    char *arg_arr[MAX_ARGS];                            // Array of strings to hold CLI arguments
+    char *in_file = NULL;                               // Input file pointer
+    char *out_file = NULL;                              // Output file pointer
 
 
     
     // Start the shell and keep it running
     while (true)
     {
-        printf(": ");
-        fflush(stdout);
-        fflush(stderr);
+        // Print the command line and get the input
+        char *user_input = get_input();
 
         // Skip any comments or blank lines
-        if (strncmp(input_buf, "#", 1) == 0 || strncmp(input_buf, "\0", 1) == 0)
+        if (strncmp(user_input, "#", 1) == 0 || strncmp(user_input, "\0", 1) == 0)
         {
             continue;
         }
 
-        // Check for and exit command
-        if (strcmp(arg_arr[0], "exit") == 0)
-        {
-            // Free memory
+        // // Check for and exit command
+        // if (strcmp(arg_arr[0], "exit") == 0)
+        // {
+        //     // Free memory
 
 
-            exit(EXIT_SUCCESS);
-        }
+        //     exit(EXIT_SUCCESS);
+        // }
 
 
-
+        printf("%s", user_input);
+        free_memory(user_input);
+        return 0;
     }
 
     return 0;
@@ -116,4 +118,32 @@ void change_dir(char **arg_arr)
     {
         printf("Invalid directory name.\n");
     }
+}
+
+
+// Print the command line and read the input
+char *get_input()
+{
+    // Print the command line
+    printf(": ");
+    fflush(stdout);
+
+    // String for CLI input
+    char *input_buf = malloc(BUF_SIZE * sizeof(char));
+
+    // Clear out the buffer
+    memset(input_buf, '\0', sizeof(input_buf));
+
+    // Read the CLI input
+    fgets(input_buf, BUF_SIZE, stdin);
+
+    return input_buf;
+}
+
+
+// Free the alocated memory
+void free_memory(char *user_input)
+{
+    // Free the user input string
+    free(user_input);
 }
