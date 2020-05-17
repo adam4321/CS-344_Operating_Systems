@@ -18,13 +18,12 @@
 #define BUF_SIZE    2049    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
 
-bool is_fg_only = false;    // Bool to hold the state of foreground only mode
-
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
 void free_memory(char *user_input, int arg_count, char *arg_arr[]);
 char *get_input();
+void print_arr(int arg_count, char *arg_arr[]);
 void catchSIGINT(int signo);
 void change_dir(char **arg_arr);
 void get_status(int status);
@@ -34,13 +33,15 @@ void get_status(int status);
 
 int main()
 {
-    int arg_count;                  // Value to hold the number of tokens entered
+    int arg_count = 0;              // Value to hold the number of tokens entered
     char *current_arg;              // String to hold each token to be parsed
     char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
     char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
+    int status = 0;                 // Exit status of last foreground process
+    bool is_fg_only = false;        // Bool to hold the state of foreground only mode
+    bool bg_mode = false;           // Boolean flag holding state of background mode
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
-    int status = 0;                 // Exit status of last foreground process
 
 
     // Start the shell and keep it running
@@ -49,6 +50,7 @@ int main()
         // Print the command line and get the input
         char *user_input = get_input();
         arg_count = 0;
+        bg_mode = false;
 
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
@@ -110,31 +112,43 @@ int main()
                 if (strstr(current_arg, "$$") != NULL)
                 {
                     int shell_pid = getpid();
-
+                    
                 }
             }
-            
+
             // Enter the string into the arguments array and advance the arg
             arg_arr[arg_count] = strdup(current_arg);
+
+            // Advance to the next user input token
             arg_count++;
+            arg_arr[arg_count] = NULL;
             current_arg = strtok(NULL, " \n");
         }
 
 
-
-        int i = 0;
-        while (i < arg_count)
+        // Check for and process change directory
+        if (strcmp(arg_arr[0], "cd") == 0)
         {
-            printf("%s ", arg_arr[i]);
-            i++;
+            change_dir(arg_arr);
         }
-        printf("\n");
+        // Check for and process background process request
+        else if (strcmp(arg_arr[arg_count - 1], "&") == 0)
+        {
+            arg_arr[arg_count - 1] = "\0";
+
+            if (is_fg_only == false)
+            {
+                bg_mode = true;
+            }
+        }
+
+
+        // // COMMENT OUT BEFORE RELEASE !! print array for testing
+        // print_arr(arg_count, arg_arr);
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
     }
-
-    return 0;
 }
 
 
@@ -176,6 +190,22 @@ char *get_input()
 }
 
 
+// FOR TESTING - COMMENT OUT BEFORE RELEASE !! print the arguments array
+void print_arr(int arg_count, char *arg_arr[])
+{
+    int i = 0;
+
+    while (i < arg_count)
+    {
+        printf("%s ", arg_arr[i]);
+        i++;
+    }
+
+    printf("\n");
+}
+
+
+// 
 void catchSIGINT(int signo)
 {
   char* message = "SIGINT. Use CTRL-Z to Stop.\n";
