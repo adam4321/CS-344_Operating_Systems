@@ -23,22 +23,23 @@ bool is_fg_only = false;    // Bool to hold the state of foreground only mode
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
+void free_memory(char *user_input);
+char *get_input();
 void catchSIGINT(int signo);
 void change_dir(char **arg_arr);
 void get_status(int status);
-char *get_input();
-void free_memory(char *user_input);
 
 
 /* MAIN ---------------------------------------------------------------------*/
 
 int main()
 {
-    int arg_count = 0;          // Value to hold the number of tokens entered
-    char *current_arg;          // String to hold each token to be parsed
-    char *arg_arr[MAX_ARGS];    // Array of strings to hold CLI arguments
-    char *in_file = NULL;       // Input file pointer
-    char *out_file = NULL;      // Output file pointer
+    int arg_count = 0;              // Value to hold the number of tokens entered
+    char *current_arg;              // String to hold each token to be parsed
+    char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
+    char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
+    char *in_file;                  // Input file pointer
+    char *out_file;                 // Output file pointer
 
 
     // Start the shell and keep it running
@@ -48,20 +49,25 @@ int main()
         char *user_input = get_input();
 
         // Skip any comments or blank lines
-        if (strncmp(user_input, "#", 1) == 0 || strncmp(user_input, " ", 1) == 0)
+        if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
         {
+            // Free memory
+            free_memory(user_input);
+
+            // Run prompt loop again
             continue;
         }
 
         // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
 
-        // Check for and exit command
+        // Check for an exit command
         if (strcmp(current_arg, "exit") == 0)
         {
             // Free memory
             free_memory(user_input);
 
+            // Exit the shell with a successfull status
             exit(EXIT_SUCCESS);
         }
 
@@ -69,16 +75,45 @@ int main()
 
         while (current_arg != NULL)
         {
+            // Check for input redirection
+            if (strcmp(current_arg, "<") == 0)
+            {
+                // Pull the next argument
+                current_arg = strtok(NULL, " \n");
 
+                // Assign the input file
+                in_file = strdup(current_arg);
+                current_arg = strtok(NULL, " \n");
+            }
+            // Check for output redirection
+            else if (strcmp(current_arg, ">") == 0)
+            {
+                // Pull the next argument
+                current_arg = strtok(NULL, " \n");
+
+                // Assign the output file
+                out_file = strdup(current_arg);
+                current_arg = strtok(NULL, " \n");
+            }
+            else
+            {
+                if (strstr(current_arg, "$$") != NULL)
+                {
+                    int shell_pid = getpid();
+                    // strcpy( , current_arg);
+                    // ex
+                }
+            }
+            
         }
 
 
 
 
         printf("%s", user_input);
-        free_memory(user_input);
 
-        return 0;
+        // Free the memory alocated during the current loop
+        free_memory(user_input);
     }
 
     return 0;
@@ -86,6 +121,34 @@ int main()
 
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
+
+// Free the alocated memory
+void free_memory(char *user_input)
+{
+    // Free the user input string
+    free(user_input);
+}
+
+
+// Print the command line and read the input
+char *get_input()
+{
+    // Print the command line
+    printf(": ");
+    fflush(stdout);
+
+    // String for CLI input
+    char *input_buf = malloc(BUF_SIZE * sizeof(char));
+
+    // Clear out the buffer
+    memset(input_buf, '\0', sizeof(input_buf));
+
+    // Read the CLI input
+    fgets(input_buf, BUF_SIZE, stdin);
+
+    return input_buf;
+}
+
 
 void catchSIGINT(int signo)
 {
@@ -113,51 +176,18 @@ void get_status(int status)
 // Implementation of the built-in cd for changing directories
 void change_dir(char **arg_arr)
 {
-    char *dir;
-
     // If no directory is requested then change to user home directory
-    if (arg_arr[1] == 0)
+    if (arg_arr[1] == NULL)
     {
-        dir = getenv("HOME");
-        chdir(dir);
+        chdir(getenv("HOME"));
     }
-    // If a directory argument exists, then change to that directory
+    // If a directory argument exists, then try to change to that directory
     else
     {
-        dir = arg_arr[1];
-        chdir(dir);
+        // If failed, then print an error
+        if (chdir(arg_arr[1]) != 0)
+        {
+            printf("No such file or directory.\n");
+        }
     }
-    // If failed, then print an error
-    if (chdir(dir) != 0)
-    {
-        printf("Invalid directory name.\n");
-    }
-}
-
-
-// Print the command line and read the input
-char *get_input()
-{
-    // Print the command line
-    printf(": ");
-    fflush(stdout);
-
-    // String for CLI input
-    char *input_buf = malloc(BUF_SIZE * sizeof(char));
-
-    // Clear out the buffer
-    memset(input_buf, '\0', sizeof(input_buf));
-
-    // Read the CLI input
-    fgets(input_buf, BUF_SIZE, stdin);
-
-    return input_buf;
-}
-
-
-// Free the alocated memory
-void free_memory(char *user_input)
-{
-    // Free the user input string
-    free(user_input);
 }
