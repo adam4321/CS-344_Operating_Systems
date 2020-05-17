@@ -23,7 +23,7 @@ bool is_fg_only = false;    // Bool to hold the state of foreground only mode
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
-void free_memory(char *user_input);
+void free_memory(char *user_input, int arg_count, char *arg_arr[]);
 char *get_input();
 void catchSIGINT(int signo);
 void change_dir(char **arg_arr);
@@ -34,12 +34,13 @@ void get_status(int status);
 
 int main()
 {
-    int arg_count = 0;              // Value to hold the number of tokens entered
+    int arg_count;                  // Value to hold the number of tokens entered
     char *current_arg;              // String to hold each token to be parsed
     char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
     char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
+    int status = 0;                 // Exit status of last foreground process
 
 
     // Start the shell and keep it running
@@ -47,16 +48,17 @@ int main()
     {
         // Print the command line and get the input
         char *user_input = get_input();
+        arg_count = 0;
 
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
         {
-            // Free memory
-            free_memory(user_input);
+            free_memory(user_input, arg_count, arg_arr);
 
             // Run prompt loop again
             continue;
         }
+
 
         // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
@@ -64,15 +66,23 @@ int main()
         // Check for an exit command
         if (strcmp(current_arg, "exit") == 0)
         {
-            // Free memory
-            free_memory(user_input);
+            free_memory(user_input, arg_count, arg_arr);
 
             // Exit the shell with a successfull status
             exit(EXIT_SUCCESS);
         }
+        // Print status of the last foreground process
+        else if (strcmp(current_arg, "status") == 0)
+        {
+            get_status(status);
+            free_memory(user_input, arg_count, arg_arr);
 
-        arg_count = 0;
+            // Run prompt loop again
+            continue;
+        }
 
+
+        // Parse user input beyond the first command
         while (current_arg != NULL)
         {
             // Check for input redirection
@@ -100,20 +110,28 @@ int main()
                 if (strstr(current_arg, "$$") != NULL)
                 {
                     int shell_pid = getpid();
-                    // strcpy( , current_arg);
-                    // ex
+
                 }
             }
             
+            // Enter the string into the arguments array and advance the arg
+            arg_arr[arg_count] = strdup(current_arg);
+            arg_count++;
+            current_arg = strtok(NULL, " \n");
         }
 
 
 
-
-        printf("%s", user_input);
+        int i = 0;
+        while (i < arg_count)
+        {
+            printf("%s ", arg_arr[i]);
+            i++;
+        }
+        printf("\n");
 
         // Free the memory alocated during the current loop
-        free_memory(user_input);
+        free_memory(user_input, arg_count, arg_arr);
     }
 
     return 0;
@@ -123,10 +141,18 @@ int main()
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
 // Free the alocated memory
-void free_memory(char *user_input)
+void free_memory(char *user_input, int arg_count, char *arg_arr[])
 {
     // Free the user input string
     free(user_input);
+
+    // Free the arguments array
+    int i = 0;
+    while (i < arg_count)
+    {
+        free(arg_arr[i]);
+        i++;
+    }
 }
 
 
