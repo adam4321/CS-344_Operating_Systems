@@ -129,10 +129,10 @@ int main()
                 pid_t shell_pid = getpid();
 
 
-                // char str_pid[12];
-                // sprintf(str_pid, "%d", shell_pid);
-                // current_arg = strdup(str_pid);
-                snprintf(current_arg, 10, "%d", shell_pid);
+                char str_pid[12];
+                sprintf(str_pid, "%d", shell_pid);
+                current_arg = strdup(str_pid);
+                // snprintf(current_arg, 10, "%d", shell_pid);
 
             }
 
@@ -157,6 +157,10 @@ int main()
         if (strcmp(arg_arr[0], "cd") == 0)
         {
             change_dir(arg_arr);
+            free_memory(user_input, arg_count, arg_arr);
+
+            // Run prompt loop again
+            continue;
         }
         // Check for and process background process request
         else if (strcmp(arg_arr[arg_count - 1], "&") == 0)
@@ -173,10 +177,10 @@ int main()
         {
             cur_pid = fork();
 
-            if (cur_pid < 0)
+            if (cur_pid == -1)
             {
                 cur_status = 1;
-                perror("Error: process not started.\n");
+                fprintf(stderr, "Error: process not started.\n");
                 term_bg_procs(pid_count, bg_pid_arr);
                 break;
             }
@@ -211,11 +215,41 @@ int main()
                 }
                 
             }
+            else
+            {
+                if (bg_mode == false)
+                {
+                    cur_pid = waitpid(cur_pid, &cur_status, 0);
+
+                    if (WIFSIGNALED(cur_status))
+                    {
+                        printf("terminated by signal%d\n", cur_status);
+                        fflush(stdout);
+                    }
+                }
+
+            }
         }
         
 
 
-        
+        cur_pid = waitpid(-1, &cur_status, WNOHANG);
+
+        while (cur_pid > 0)
+        {
+            if (WIFEXITED(cur_status))
+            {
+                printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
+                fflush(stdout);
+            }
+            else
+            {
+                printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
+                fflush(stdout);
+            }
+            
+            cur_pid = waitpid(-1, &cur_status, WNOHANG);
+        }
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
@@ -269,6 +303,7 @@ void print_arr(int arg_count, char *arg_arr[])
     while (i < arg_count)
     {
         printf("%s ", arg_arr[i]);
+        fflush(stdout);
         i++;
     }
 
@@ -310,17 +345,17 @@ void tstp_handler(int tstp_sig)
 
 
 // Print the exit value or the terminating signal
-void get_status(int status)
+void get_status(int cur_status)
 {
     // Prints the exit status of the last foreground process
-    if (WIFEXITED(status))
+    if (WIFEXITED(cur_status))
     {
-        printf("exit value %i\n", WEXITSTATUS(status));
+        printf("exit value %i\n", WEXITSTATUS(cur_status));
     }
     // Prints the terminating signal of the last foreground process
     else
     {
-        printf("terminated by signal %i", status);
+        printf("terminated by signal %i", cur_status);
     }
 }
 
