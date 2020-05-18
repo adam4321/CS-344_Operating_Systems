@@ -42,15 +42,16 @@ int main()
     char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
     int status = 0;                 // Exit status of last foreground process
     bool bg_mode = false;           // Boolean flag holding state of background mode
-    char *in_file;                  // Input file pointer
-    char *out_file;                 // Output file pointer
+    int cur_status = 0;             // State of the most recent exit status
     pid_t cur_pid;                  // The current background process
     pid_t pid_count = 0;
     pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
+    char *in_file;                  // Input file pointer
+    char *out_file;                 // Output file pointer
 
-    // struct sigaction catch_sig_int = {0};
-    // catch_sig_int.sa_handler = SIG_IGN;
-    // sigaction(SIGINT, &catch_sig_int, NULL);
+    struct sigaction catch_sig_int = {0};
+    catch_sig_int.sa_handler = SIG_IGN;
+    sigaction(SIGINT, &catch_sig_int, NULL);
 
     struct sigaction catch_sig_tstp = {0};
     catch_sig_tstp.sa_handler = &tstp_handler;
@@ -146,8 +147,8 @@ int main()
 
 
 
-        // COMMENT OUT BEFORE RELEASE !! print array for testing
-        print_arr(arg_count, arg_arr);
+        // // COMMENT OUT BEFORE RELEASE !! print array for testing
+        // print_arr(arg_count, arg_arr);
 
 
 
@@ -174,8 +175,41 @@ int main()
 
             if (cur_pid < 0)
             {
+                cur_status = 1;
                 perror("Error: process not started.\n");
+                term_bg_procs(pid_count, bg_pid_arr);
+                break;
+            }
+            else if (cur_pid == 0)
+            {
+                if (bg_mode == false)
+                {
+                    catch_sig_int.sa_handler = SIG_DFL;
+                    sigaction(SIGINT, &catch_sig_int, NULL);
+                }
 
+
+                if (execvp(arg_arr[0], arg_arr))
+                {
+                    printf("%s: no such file or directory\n", arg_arr[0]);
+                    fflush(stdout);
+                    exit(1);
+                }
+                else
+                {
+                    if (bg_mode == false)
+                    {
+                        cur_pid = waitpid(cur_pid, &cur_status, 0);
+
+                        if (WIFSIGNALED(cur_status))
+                        {
+                            printf("terminated by signal %d\n", cur_status);
+                            fflush(stdout);
+                        }
+                    }
+                    
+                }
+                
             }
         }
         
