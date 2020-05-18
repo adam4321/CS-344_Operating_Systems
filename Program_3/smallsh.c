@@ -24,7 +24,7 @@
 void free_memory(char *user_input, int arg_count, char *arg_arr[]);
 char *get_input();
 void print_arr(int arg_count, char *arg_arr[]);
-void catchSIGINT(int signo);
+void tstp_handler(int tstp_sig, bool is_fg_only);
 void change_dir(char **arg_arr);
 void get_status(int status);
 
@@ -42,6 +42,18 @@ int main()
     bool bg_mode = false;           // Boolean flag holding state of background mode
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
+    pid_t cur_pid;                  // The current background process
+    pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
+
+    // struct sigaction catch_sig_int = {0};
+    // catch_sig_int.sa_handler = SIG_IGN;
+    // sigaction(SIGINT, &catch_sig_int, NULL);
+
+    struct sigaction catch_sig_tstp = {0};
+    catch_sig_tstp.sa_handler = &tstp_handler;
+    sigfillset(&catch_sig_tstp.sa_mask);
+    catch_sig_tstp.sa_flags = SA_RESTART;
+    sigaction(SIGTSTP, &catch_sig_tstp, NULL);
 
 
     // Start the shell and keep it running
@@ -107,13 +119,17 @@ int main()
                 out_file = strdup(current_arg);
                 current_arg = strtok(NULL, " \n");
             }
-            else
+            else if (strstr(current_arg, "$$") != NULL)
             {
-                if (strstr(current_arg, "$$") != NULL)
-                {
-                    int shell_pid = getpid();
-                    
-                }
+                // Pull the shell's current process id
+                pid_t shell_pid = getpid();
+
+
+                // char str_pid[12];
+                // sprintf(str_pid, "%d", shell_pid);
+                // current_arg = strdup(str_pid);
+                snprintf(current_arg, 10, "%d", shell_pid);
+
             }
 
             // Enter the string into the arguments array and advance the arg
@@ -124,6 +140,13 @@ int main()
             arg_arr[arg_count] = NULL;
             current_arg = strtok(NULL, " \n");
         }
+
+
+
+        // COMMENT OUT BEFORE RELEASE !! print array for testing
+        print_arr(arg_count, arg_arr);
+
+
 
 
         // Check for and process change directory
@@ -141,10 +164,21 @@ int main()
                 bg_mode = true;
             }
         }
+        // Fork a child process and execute
+        else
+        {
+            cur_pid = fork();
+
+            if (cur_pid < 0)
+            {
+                perror("Error: process not started.\n");
+
+            }
+        }
+        
 
 
-        // // COMMENT OUT BEFORE RELEASE !! print array for testing
-        // print_arr(arg_count, arg_arr);
+        
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
@@ -205,12 +239,15 @@ void print_arr(int arg_count, char *arg_arr[])
 }
 
 
-// 
-void catchSIGINT(int signo)
+// Handler to catch (^Z) TSTP signal and switch foreground only mode
+void tstp_handler(int tstp_sig, bool is_fg_only)
 {
-  char* message = "SIGINT. Use CTRL-Z to Stop.\n";
-  write(STDOUT_FILENO, message, 28);
-}
+    if (is_fg_only == false)
+    {
+        is_fg_only = true;
+        char *msg_str = "\nEntering foreground-only mode (& is now ignored)\n";
+    }
+} 
 
 
 // Print the exit value or the terminating signal
@@ -243,7 +280,7 @@ void change_dir(char **arg_arr)
         // If failed, then print an error
         if (chdir(arg_arr[1]) != 0)
         {
-            printf("No such file or directory.\n");
+            printf("%s: no such file or directory.\n", arg_arr[1]);
         }
     }
 }
