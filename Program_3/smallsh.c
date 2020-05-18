@@ -39,7 +39,6 @@ int main()
     int arg_count = 0;              // Value to hold the number of tokens entered
     char *current_arg;              // String to hold each token to be parsed
     char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
-    char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
     int status = 0;                 // Exit status of last foreground process
     bool bg_mode = false;           // Boolean flag holding state of background mode
     int cur_status = 0;             // State of the most recent exit status
@@ -49,11 +48,15 @@ int main()
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
 
+    // Signal handler structs
     struct sigaction catch_sig_int = {0};
+    struct sigaction catch_sig_tstp = {0};
+
+    // SIGINT handler
     catch_sig_int.sa_handler = SIG_IGN;
     sigaction(SIGINT, &catch_sig_int, NULL);
 
-    struct sigaction catch_sig_tstp = {0};
+    // SIGTSTP handler
     catch_sig_tstp.sa_handler = &tstp_handler;
     sigfillset(&catch_sig_tstp.sa_mask);
     catch_sig_tstp.sa_flags = SA_RESTART;
@@ -128,12 +131,10 @@ int main()
                 // Pull the shell's current process id
                 pid_t shell_pid = getpid();
 
-
+                // Convert the pid to a string and assign to current_arg
                 char str_pid[12];
                 sprintf(str_pid, "%d", shell_pid);
                 current_arg = strdup(str_pid);
-                // snprintf(current_arg, 10, "%d", shell_pid);
-
             }
 
             // Enter the string into the arguments array and advance the arg
@@ -145,12 +146,8 @@ int main()
             current_arg = strtok(NULL, " \n");
         }
 
-
-
         // // COMMENT OUT BEFORE RELEASE !! print array for testing
         // print_arr(arg_count, arg_arr);
-
-
 
 
         // Check for and process change directory
@@ -172,7 +169,7 @@ int main()
                 bg_mode = true;
             }
         }
-        // Fork a child process and execute it
+        // Fork a new child process and execute it
         else
         {
             cur_pid = fork();
@@ -207,7 +204,7 @@ int main()
 
                         if (WIFSIGNALED(cur_status))
                         {
-                            printf("terminated by signal %d\n", cur_status);
+                            printf(" terminated by signal %d\n", cur_status);
                             fflush(stdout);
                         }
                     }
@@ -223,7 +220,7 @@ int main()
 
                     if (WIFSIGNALED(cur_status))
                     {
-                        printf("terminated by signal%d\n", cur_status);
+                        printf(" terminated by signal %d\n", cur_status);
                         fflush(stdout);
                     }
                 }
