@@ -92,7 +92,7 @@ int main()
         // Print status of the last foreground process
         else if (strcmp(current_arg, "status") == 0)
         {
-            get_status(status);
+            get_status(cur_status);
             free_memory(user_input, arg_count, arg_arr);
 
             // Run prompt loop again
@@ -168,7 +168,7 @@ int main()
                 bg_mode = true;
             }
         }
-        // Fork a child process and execute
+        // Fork a child process and execute it
         else
         {
             cur_pid = fork();
