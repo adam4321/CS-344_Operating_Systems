@@ -18,13 +18,16 @@
 #define BUF_SIZE    2049    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
 
+bool is_fg_only = false;        // Bool to hold the state of foreground only mode
+
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
 
 void free_memory(char *user_input, int arg_count, char *arg_arr[]);
 char *get_input();
 void print_arr(int arg_count, char *arg_arr[]);
-void tstp_handler(int tstp_sig, bool is_fg_only);
+void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[]);
+void tstp_handler(int tstp_sig);
 void change_dir(char **arg_arr);
 void get_status(int status);
 
@@ -38,11 +41,11 @@ int main()
     char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
     char *param_expand[BUF_SIZE];   // String to hold the current shell pid if $$ is found
     int status = 0;                 // Exit status of last foreground process
-    bool is_fg_only = false;        // Bool to hold the state of foreground only mode
     bool bg_mode = false;           // Boolean flag holding state of background mode
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
     pid_t cur_pid;                  // The current background process
+    pid_t pid_count = 0;
     pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
 
     // struct sigaction catch_sig_int = {0};
@@ -239,13 +242,35 @@ void print_arr(int arg_count, char *arg_arr[])
 }
 
 
-// Handler to catch (^Z) TSTP signal and switch foreground only mode
-void tstp_handler(int tstp_sig, bool is_fg_only)
+// End all background processes
+void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[])
 {
+    pid_t i = 0;
+
+    while (i < pid_count)
+    {
+        kill(bg_pid_arr[i], SIGTERM);
+        i++;
+    }
+}
+
+
+// Handler to catch (^Z) TSTP signal and switch foreground only mode
+void tstp_handler(int tstp_sig)
+{
+    // Switch to foreground only and print message
     if (is_fg_only == false)
     {
         is_fg_only = true;
-        char *msg_str = "\nEntering foreground-only mode (& is now ignored)\n";
+        write(STDOUT_FILENO, "\nEntering foreground-only mode (& is now ignored)\n: ", 52);
+        fflush(stdout);
+    }
+    // Switch back to normal mode and print message
+    else
+    {
+        is_fg_only = false;
+        write(STDOUT_FILENO, "\nExiting foreground-only mode\n: ", 32);
+        fflush(stdout);
     }
 } 
 
