@@ -146,6 +146,7 @@ int main()
             current_arg = strtok(NULL, " \n");
         }
 
+
         // // COMMENT OUT BEFORE RELEASE !! print array for testing
         // print_arr(arg_count, arg_arr);
 
@@ -174,6 +175,7 @@ int main()
         {
             cur_pid = fork();
 
+            // Failed fork - should never happen!!
             if (cur_pid == -1)
             {
                 cur_status = 1;
@@ -181,6 +183,7 @@ int main()
                 term_bg_procs(pid_count, bg_pid_arr);
                 break;
             }
+            // Successfully forked child process 
             else if (cur_pid == 0)
             {
                 if (bg_mode == false)
@@ -212,6 +215,7 @@ int main()
                 }
                 
             }
+            // Continuing parent process
             else
             {
                 if (bg_mode == false)
@@ -224,7 +228,16 @@ int main()
                         fflush(stdout);
                     }
                 }
+                if (bg_mode == true)
+                {
+                    waitpid(cur_pid, &cur_status, WNOHANG);
 
+                    bg_pid_arr[pid_count] = cur_pid;
+
+                    printf("background pid is %d\n", cur_pid);
+                    fflush(stdout);
+                    pid_count++;
+                }
             }
         }
         
