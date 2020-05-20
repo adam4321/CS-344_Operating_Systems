@@ -198,13 +198,17 @@ int main()
                     int open_file = open(in_file, O_RDONLY);
 
                     // Check for success and print message on error
-                    file_err_msg(cur_file, open_file, file_dsc)
-                    close(cur_file);
+                    file_err_msg(in_file, open_file, 0)
+                    close(open_file);
                 }
                 // Open output file for redirection
                 if (out_file != NULL)
                 {
+                    int open_file = open(out_file, O_WRONLY|O_CREAT|O_TRUNC, 0644);
 
+                    // Check for success and print message on error
+                    file_err_msg(out_file, open_file, 1)
+                    close(open_file);
                 }
 
                 if (execvp(arg_arr[0], arg_arr))
@@ -420,11 +424,11 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc)
 
     if(open_file == -1)
     {
-        fprintf(stderr, "cannot open file %s for %s\n", in_file, file_type);
+        fprintf(stderr, "cannot open file %s for %s\n", cur_file, file_type);
         fflush(stderr);
         exit(1);
     }
-    else if(dup2(open_file, 0) == -1)
+    else if(dup2(open_file, file_dsc) == -1)
     {
         fprintf(stderr, "error in redirecting %s\n", file_type);
         fflush(stderr);
