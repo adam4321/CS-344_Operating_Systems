@@ -45,7 +45,6 @@ int main()
     pid_t cur_pid;                  // The current background process
     pid_t pid_count = 0;
     pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
-    int cur_file;
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
 
@@ -194,7 +193,7 @@ int main()
                 }
                 if (in_file != NULL)
                 {
-                    cur_file = open(in_file, O_RDONLY);
+                    int cur_file = open(in_file, O_RDONLY);
 
                     if(cur_file == -1)
                     {
@@ -208,6 +207,8 @@ int main()
                         fflush(stderr);
                         exit(1);
                     }
+
+                    close(cur_file);
                 }
 
                 if (execvp(arg_arr[0], arg_arr))
