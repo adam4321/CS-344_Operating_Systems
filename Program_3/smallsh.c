@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <signal.h>
 
 
@@ -199,7 +200,7 @@ int main()
                     int open_file = open(in_file, O_RDONLY);
 
                     // Check for success and print message on error
-                    file_err_msg(in_file, open_file, 0)
+                    file_err_msg(in_file, open_file, 0);
                     close(open_file);
                 }
                 // Open output file for redirection
@@ -208,7 +209,7 @@ int main()
                     int open_file = open(out_file, O_WRONLY|O_CREAT|O_TRUNC, 0644);
 
                     // Check for success and print message on error
-                    file_err_msg(out_file, open_file, 1)
+                    file_err_msg(out_file, open_file, 1);
                     close(open_file);
                 }
 
@@ -412,14 +413,16 @@ void change_dir(char **arg_arr)
 // Function to print file open and close messages
 void file_err_msg(char *cur_file, int open_file, int file_dsc)
 {
+    char *file_type;
+    
     // Pick input or output for the message 
     if (file_dsc == 0)
     {
-        char *file_type = "input";
+        file_type = "input";
     }
     else if (file_dsc == 1)
     {
-        char *file_type = "output";
+        file_type = "output";
     }
     
 
