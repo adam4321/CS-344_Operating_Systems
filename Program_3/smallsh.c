@@ -73,6 +73,8 @@ int main()
         char *user_input = get_input();
         arg_count = 0;
         bg_mode = false;
+        in_file = NULL;
+        out_file = NULL;
 
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
@@ -129,26 +131,28 @@ int main()
                 out_file = strdup(current_arg);
                 current_arg = strtok(NULL, " \n");
             }
-            else if (strstr(current_arg, "$$") != NULL)
+            else
             {
-                // Pull the shell's current process id
-                pid_t shell_pid = getpid();
+                if (strstr(current_arg, "$$") != NULL)
+                {
+                    // Pull the shell's current process id
+                    pid_t shell_pid = getpid();
 
-                // Convert the pid to a string and assign to current_arg
-                char str_pid[12];
-                sprintf(str_pid, "%d", shell_pid);
-                current_arg = strdup(str_pid);
+                    // Convert the pid to a string and assign to current_arg
+                    char str_pid[12];
+                    sprintf(str_pid, "%d", shell_pid);
+                    current_arg = strdup(str_pid);
+                }
+
+                // Enter the string into the arguments array and advance the arg
+                arg_arr[arg_count] = strdup(current_arg);
+
+                // Advance to the next user input token
+                arg_count++;
+                arg_arr[arg_count] = NULL;
+                current_arg = strtok(NULL, " \n");
             }
-
-            // Enter the string into the arguments array and advance the arg
-            arg_arr[arg_count] = strdup(current_arg);
-
-            // Advance to the next user input token
-            arg_count++;
-            arg_arr[arg_count] = NULL;
-            current_arg = strtok(NULL, " \n");
         }
-
 
         // // COMMENT OUT BEFORE RELEASE !! print array for testing
         // print_arr(arg_count, arg_arr);
@@ -280,6 +284,7 @@ int main()
             
             cur_pid = waitpid(-1, &cur_status, WNOHANG);
         }
+
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
@@ -414,7 +419,7 @@ void change_dir(char **arg_arr)
 void file_err_msg(char *cur_file, int open_file, int file_dsc)
 {
     char *file_type;
-    
+
     // Pick input or output for the message 
     if (file_dsc == 0)
     {
