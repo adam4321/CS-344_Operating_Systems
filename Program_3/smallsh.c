@@ -30,6 +30,7 @@ void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[]);
 void tstp_handler(int tstp_sig);
 void change_dir(char **arg_arr);
 void get_status(int status);
+void file_err_msg(char *cur_file, int open_file, int file_dsc);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -191,24 +192,19 @@ int main()
                     catch_sig_int.sa_handler = SIG_DFL;
                     sigaction(SIGINT, &catch_sig_int, NULL);
                 }
+                // Open input file for redirection
                 if (in_file != NULL)
                 {
-                    int cur_file = open(in_file, O_RDONLY);
+                    int open_file = open(in_file, O_RDONLY);
 
-                    if(cur_file == -1)
-                    {
-                        fprintf(stderr, "cannot open file %s for input\n", in_file);
-                        fflush(stderr);
-                        exit(1);
-                    }
-                    else if(dup2(cur_file, 0) == -1)
-                    {
-                        fprintf(stderr, "error in redirecting input\n");
-                        fflush(stderr);
-                        exit(1);
-                    }
-
+                    // Check for success and print message on error
+                    file_err_msg(cur_file, open_file, file_dsc)
                     close(cur_file);
+                }
+                // Open output file for redirection
+                if (out_file != NULL)
+                {
+
                 }
 
                 if (execvp(arg_arr[0], arg_arr))
@@ -404,5 +400,34 @@ void change_dir(char **arg_arr)
         {
             printf("%s: no such file or directory.\n", arg_arr[1]);
         }
+    }
+}
+
+
+// Function to print file open and close messages
+void file_err_msg(char *cur_file, int open_file, int file_dsc)
+{
+    // Pick input or output for the message 
+    if (file_dsc == 0)
+    {
+        char *file_type = "input";
+    }
+    else if (file_dsc == 1)
+    {
+        char *file_type = "output";
+    }
+    
+
+    if(open_file == -1)
+    {
+        fprintf(stderr, "cannot open file %s for %s\n", in_file, file_type);
+        fflush(stderr);
+        exit(1);
+    }
+    else if(dup2(open_file, 0) == -1)
+    {
+        fprintf(stderr, "error in redirecting %s\n", file_type);
+        fflush(stderr);
+        exit(1);
     }
 }
