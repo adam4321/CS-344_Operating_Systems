@@ -32,6 +32,7 @@ void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[]);
 void tstp_handler(int tstp_sig);
 void change_dir(char **arg_arr);
 void get_status(int status);
+void get_bg_status(pid_t cur_pid, int cur_status);
 void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input, int arg_count, char *arg_arr[]);
 
 
@@ -75,23 +76,8 @@ int main()
         in_file = NULL;
         out_file = NULL;
 
-        cur_pid = waitpid(-1, &cur_status, WNOHANG);
-
-        while (cur_pid > 0)
-        {
-            if (WIFEXITED(cur_status))
-            {
-                printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
-                fflush(stdout);
-            }
-            else
-            {
-                printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
-                fflush(stdout);
-            }
-            
-            cur_pid = waitpid(-1, &cur_status, WNOHANG);
-        }
+        // Check for finished background processes
+        get_bg_status(cur_pid, cur_status);
 
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
@@ -309,23 +295,7 @@ int main()
         }
         
 
-        cur_pid = waitpid(-1, &cur_status, WNOHANG);
-
-        while (cur_pid > 0)
-        {
-            if (WIFEXITED(cur_status))
-            {
-                printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
-                fflush(stdout);
-            }
-            else
-            {
-                printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
-                fflush(stdout);
-            }
-            
-            cur_pid = waitpid(-1, &cur_status, WNOHANG);
-        }
+        get_bg_status(cur_pid, cur_status);
 
 
         // Free the memory alocated during the current loop
@@ -435,6 +405,28 @@ void get_status(int cur_status)
     else
     {
         printf("terminated by signal %i\n", cur_status);
+    }
+}
+
+
+void get_bg_status(pid_t cur_pid, int cur_status)
+{
+    cur_pid = waitpid(-1, &cur_status, WNOHANG);
+
+    while (cur_pid > 0)
+    {
+        if (WIFEXITED(cur_status))
+        {
+            printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
+            fflush(stdout);
+        }
+        else
+        {
+            printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
+            fflush(stdout);
+        }
+        
+        cur_pid = waitpid(-1, &cur_status, WNOHANG);
     }
 }
 
