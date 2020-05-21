@@ -123,31 +123,34 @@ int main()
             // Check for input redirection
             if (strcmp(current_arg, "<") == 0)
             {
-                // Pull the next argument
+                // Pull the file name after <
                 current_arg = strtok(NULL, " \n");
 
+                // Assign the input file
                 if (current_arg != NULL)
                 {
-                    // Assign the input file
                     in_file = strdup(current_arg);
                 }
 
                 current_arg = strtok(NULL, " \n");
             }
+
             // Check for output redirection
             else if (strcmp(current_arg, ">") == 0)
             {
-                // Pull the next argument
+                // Pull the file name after >
                 current_arg = strtok(NULL, " \n");
                 
+                // Assign the output file
                 if (current_arg != NULL)
                 {
-                    // Assign the output file
                     out_file = strdup(current_arg);
                 }
 
                 current_arg = strtok(NULL, " \n");
             }
+
+            // Check for current PID parameter expansion
             else
             {
                 if (strstr(current_arg, "$$") != NULL)
@@ -212,9 +215,11 @@ int main()
                 term_bg_procs(pid_count, bg_pid_arr);
                 exit(1);
             }
+            
             // Successfully forked child process 
             else if (cur_pid == 0)
             {
+                // Switch (^C) SIGINT handler from ignore to default
                 if (bg_mode == false)
                 {
                     catch_sig_int.sa_handler = SIG_DFL;
@@ -247,6 +252,7 @@ int main()
                     {
                         int open_file = open("/dev/null", O_RDONLY);
 
+                        // Check for success and print message on error
                         file_err_msg(in_file, open_file, 0, user_input, arg_count, arg_arr);
                         close(open_file);
                     }
@@ -255,6 +261,7 @@ int main()
                     {
                         int open_file = open("/dev/null", O_WRONLY);
 
+                        // Check for success and print message on error
                         file_err_msg(out_file, open_file, 1, user_input, arg_count, arg_arr);
                         close(open_file);
                     }
@@ -272,6 +279,7 @@ int main()
             // Continuing parent process
             else
             {
+                // Background process 
                 if (bg_mode == true)
                 {
                     waitpid(cur_pid, &cur_status, WNOHANG);
@@ -282,7 +290,7 @@ int main()
                     printf("background pid is %d\n", (int)cur_pid);
                     fflush(stdout);
                 }
-
+                // Foreground process
                 else
                 {
                     cur_pid = waitpid(cur_pid, &cur_status, 0);
@@ -410,6 +418,7 @@ void get_status(int cur_status)
 }
 
 
+// Check for any completed or terminated background processes
 void get_bg_status(pid_t cur_pid, int cur_status)
 {
     cur_pid = waitpid(-1, &cur_status, WNOHANG);
