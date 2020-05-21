@@ -20,7 +20,7 @@
 #define BUF_SIZE    2048    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
 
-bool is_fg_only = false;        // Bool to hold the state of foreground only mode
+bool is_fg_only = false;    // Bool to hold the state of foreground only mode
 
 
 /* FUNCTION DECLARATIONS ----------------------------------------------------*/
@@ -46,7 +46,7 @@ int main()
     bool bg_mode = false;           // Boolean flag holding state of background mode
     int cur_status = 0;             // State of the most recent exit status
     pid_t cur_pid;                  // The current background process
-    pid_t pid_count = 0;
+    pid_t pid_count = 0;            // Value to hold the number of background processes
     pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
     char *in_file;                  // Input file pointer
     char *out_file;                 // Output file pointer
@@ -66,7 +66,7 @@ int main()
     sigaction(SIGTSTP, &catch_sig_tstp, NULL);
 
 
-    // Start the shell and keep it running
+    // Start the shell and keep it running until exit command
     while (true)
     {
         // Print the command line and get the input
@@ -75,6 +75,7 @@ int main()
         bg_mode = false;
         in_file = NULL;
         out_file = NULL;
+
 
         // Check for finished background processes
         get_bg_status(cur_pid, cur_status);
@@ -88,6 +89,7 @@ int main()
             // Run prompt loop again
             continue;
         }
+
 
         // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
@@ -294,9 +296,8 @@ int main()
             }
         }
         
-
+        // Check for finished background processes
         get_bg_status(cur_pid, cur_status);
-
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
