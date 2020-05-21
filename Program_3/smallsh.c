@@ -20,6 +20,7 @@
 
 #define BUF_SIZE    2048    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
+#define MAX_BG_PROCS  64    // Maximum number of background processes
 
 bool is_fg_only = false;    // Bool to hold the state of foreground only mode
 
@@ -41,17 +42,6 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input,
 
 int main()
 {
-    int arg_count = 0;              // Value to hold the number of tokens entered
-    char *current_arg;              // String to hold each token to be parsed
-    char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
-    bool bg_mode = false;           // Boolean flag holding state of background mode
-    int cur_status = 0;             // State of the most recent exit status
-    pid_t cur_pid;                  // The current background process
-    pid_t pid_count = 0;            // Value to hold the number of background processes
-    pid_t bg_pid_arr[MAX_ARGS];     // Array of pids of all background processes
-    char *in_file;                  // Input file pointer
-    char *out_file;                 // Output file pointer
-
     // Signal handler structs
     struct sigaction catch_sig_int = {0};
     struct sigaction catch_sig_tstp = {0};
@@ -66,6 +56,17 @@ int main()
     catch_sig_tstp.sa_flags = SA_RESTART;
     sigaction(SIGTSTP, &catch_sig_tstp, NULL);
 
+    int arg_count = 0;              // Value to hold the number of tokens entered
+    char *current_arg;              // String to hold each token to be parsed
+    char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
+    bool bg_mode = false;           // Boolean flag holding state of background mode
+    int cur_status = 0;             // State of the most recent exit status
+    pid_t cur_pid;                  // The current background process
+    pid_t pid_count = 0;            // Value to hold the number of background processes
+    pid_t bg_pid_arr[MAX_BG_PROCS]; // Array of pids of all background processes
+    char *in_file;                  // Input file pointer
+    char *out_file;                 // Output file pointer
+
 
     // Start the shell and keep it running until exit command
     while (true)
@@ -77,9 +78,9 @@ int main()
         in_file = NULL;
         out_file = NULL;
 
-
         // Check for finished background processes
         get_bg_status(cur_pid, cur_status);
+
 
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
@@ -90,7 +91,6 @@ int main()
             // Run prompt loop again
             continue;
         }
-
 
         // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
