@@ -248,8 +248,10 @@ int main()
                     close(open_file);
                 }
 
+                // Background process
                 if (bg_mode == true)
                 {
+                    // Catch errors for no input file 
                     if (in_file == NULL)
                     {
                         int open_file = open("/dev/null", O_RDONLY);
@@ -259,6 +261,7 @@ int main()
                         close(open_file);
                     }
 
+                    // Catch errors for no output file
                     if (out_file == NULL)
                     {
                         int open_file = open("/dev/null", O_WRONLY);
@@ -269,6 +272,7 @@ int main()
                     }
                 }
 
+                // Execute the command with the entered arguments
                 if (execvp(arg_arr[0], arg_arr))
                 {
                     printf("%s: no such file or directory\n", arg_arr[0]);
@@ -345,10 +349,8 @@ char *get_input()
     // String for CLI input
     char *input_buf = malloc(BUF_SIZE * sizeof(char));
 
-    // Clear out the buffer
+    // Clear out the buffer and read the CLI input
     memset(input_buf, '\0', sizeof(input_buf));
-
-    // Read the CLI input
     fgets(input_buf, BUF_SIZE, stdin);
     return input_buf;
 }
