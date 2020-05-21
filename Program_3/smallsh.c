@@ -17,7 +17,7 @@
 #include <signal.h>
 
 
-#define BUF_SIZE    2049    // Maximum number of characters supported
+#define BUF_SIZE    2048    // Maximum number of characters supported
 #define MAX_ARGS     512    // Maximum number of commands supported
 
 bool is_fg_only = false;        // Bool to hold the state of foreground only mode
@@ -32,7 +32,7 @@ void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[]);
 void tstp_handler(int tstp_sig);
 void change_dir(char **arg_arr);
 void get_status(int status);
-void file_err_msg(char *cur_file, int open_file, int file_dsc);
+void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input, int arg_count, char *arg_arr[]);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -42,7 +42,6 @@ int main()
     int arg_count = 0;              // Value to hold the number of tokens entered
     char *current_arg;              // String to hold each token to be parsed
     char *arg_arr[MAX_ARGS];        // Array of strings to hold CLI arguments
-    int status = 0;                 // Exit status of last foreground process
     bool bg_mode = false;           // Boolean flag holding state of background mode
     int cur_status = 0;             // State of the most recent exit status
     pid_t cur_pid;                  // The current background process
@@ -79,6 +78,7 @@ int main()
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
         {
+            // If a blank line or comment then free alocated objects
             free_memory(user_input, arg_count, arg_arr);
 
             // Run prompt loop again
@@ -92,7 +92,9 @@ int main()
         // Check for an exit command
         if (strcmp(current_arg, "exit") == 0)
         {
+            // If exit then free alocated objects and term background procs
             free_memory(user_input, arg_count, arg_arr);
+            term_bg_procs(pid_count, bg_pid_arr);
 
             // Exit the shell with a successfull status
             exit(EXIT_SUCCESS);
@@ -100,6 +102,7 @@ int main()
         // Print status of the last foreground process
         else if (strcmp(current_arg, "status") == 0)
         {
+            // Print the status and free alocated objects
             get_status(cur_status);
             free_memory(user_input, arg_count, arg_arr);
 
@@ -158,25 +161,30 @@ int main()
         // print_arr(arg_count, arg_arr);
 
 
+        // Check for and process background process request
+        if (strcmp(arg_arr[arg_count - 1], "&") == 0)
+        {
+            // Remove the ampersand from the array
+            arg_arr[arg_count - 1] = NULL;
+
+            // If not in foreground only mode, set the background proc flag
+            if (is_fg_only == false)
+            {
+                bg_mode = true;
+            }
+        }
+
         // Check for and process change directory
         if (strcmp(arg_arr[0], "cd") == 0)
         {
+            // Change the directory and free alocated objects
             change_dir(arg_arr);
             free_memory(user_input, arg_count, arg_arr);
 
             // Run prompt loop again
             continue;
         }
-        // Check for and process background process request
-        else if (strcmp(arg_arr[arg_count - 1], "&") == 0)
-        {
-            arg_arr[arg_count - 1] = "\0";
 
-            if (is_fg_only == false)
-            {
-                bg_mode = true;
-            }
-        }
         // Fork a new child process and execute it
         else
         {
@@ -198,51 +206,56 @@ int main()
                     catch_sig_int.sa_handler = SIG_DFL;
                     sigaction(SIGINT, &catch_sig_int, NULL);
                 }
+
                 // Open input file for redirection
                 if (in_file != NULL)
                 {
                     int open_file = open(in_file, O_RDONLY);
 
                     // Check for success and print message on error
-                    file_err_msg(in_file, open_file, 0);
+                    file_err_msg(in_file, open_file, 0, user_input, arg_count, arg_arr);
                     close(open_file);
                 }
+
                 // Open output file for redirection
                 if (out_file != NULL)
                 {
                     int open_file = open(out_file, O_WRONLY|O_CREAT|O_TRUNC, 0644);
 
                     // Check for success and print message on error
-                    file_err_msg(out_file, open_file, 1);
+                    file_err_msg(out_file, open_file, 1, user_input, arg_count, arg_arr);
                     close(open_file);
+                }
+
+                if (bg_mode == true)
+                {
+
                 }
 
                 if (execvp(arg_arr[0], arg_arr))
                 {
                     printf("%s: no such file or directory\n", arg_arr[0]);
                     fflush(stdout);
+                    free_memory(user_input, arg_count, arg_arr);
                     exit(1);
-                }
-                else
-                {
-                    if (bg_mode == false)
-                    {
-                        cur_pid = waitpid(cur_pid, &cur_status, 0);
-
-                        if (WIFSIGNALED(cur_status))
-                        {
-                            printf(" terminated by signal %d\n", cur_status);
-                            fflush(stdout);
-                        }
-                    }
-                    
-                }
-                
+                } 
             }
+
             // Continuing parent process
             else
             {
-                if (bg_mode == false)
+                if (bg_mode == true)
+                {
+                    waitpid(cur_pid, &cur_status, WNOHANG);
+
+                    bg_pid_arr[pid_count] = cur_pid;
+                    pid_count++;
+
+                    printf("background pid is %d\n", (int)cur_pid);
+                    fflush(stdout);
+                }
+
+                else
                 {
                     cur_pid = waitpid(cur_pid, &cur_status, 0);
 
@@ -252,20 +265,9 @@ int main()
                         fflush(stdout);
                     }
                 }
-                if (bg_mode == true)
-                {
-                    waitpid(cur_pid, &cur_status, WNOHANG);
-
-                    bg_pid_arr[pid_count] = cur_pid;
-
-                    printf("background pid is %d\n", cur_pid);
-                    fflush(stdout);
-                    pid_count++;
-                }
             }
         }
         
-
 
         cur_pid = waitpid(-1, &cur_status, WNOHANG);
 
@@ -288,6 +290,8 @@ int main()
 
         // Free the memory alocated during the current loop
         free_memory(user_input, arg_count, arg_arr);
+        free(in_file);
+        free(out_file);
     }
 }
 
@@ -390,7 +394,7 @@ void get_status(int cur_status)
     // Prints the terminating signal of the last foreground process
     else
     {
-        printf("terminated by signal %i", cur_status);
+        printf("terminated by signal %i\n", cur_status);
     }
 }
 
@@ -416,7 +420,7 @@ void change_dir(char **arg_arr)
 
 
 // Function to print file open and close messages
-void file_err_msg(char *cur_file, int open_file, int file_dsc)
+void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input, int arg_count, char *arg_arr[])
 {
     char *file_type;
 
@@ -433,14 +437,16 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc)
 
     if(open_file == -1)
     {
-        fprintf(stderr, "cannot open file %s for %s\n", cur_file, file_type);
+        fprintf(stderr, "cannot open %s for %s\n", cur_file, file_type);
         fflush(stderr);
+        free_memory(user_input, arg_count, arg_arr);
         exit(1);
     }
     else if(dup2(open_file, file_dsc) == -1)
     {
         fprintf(stderr, "error in redirecting %s\n", file_type);
         fflush(stderr);
+        free_memory(user_input, arg_count, arg_arr);
         exit(1);
     }
 }
