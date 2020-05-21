@@ -293,6 +293,7 @@ int main()
                     bg_pid_arr[pid_count] = cur_pid;
                     pid_count++;
 
+                    // Print background process pid
                     printf("background pid is %d\n", (int)cur_pid);
                     fflush(stdout);
                 }
@@ -301,6 +302,7 @@ int main()
                 {
                     cur_pid = waitpid(cur_pid, &cur_status, 0);
 
+                    // Print signal if process is terminated
                     if (WIFSIGNALED(cur_status))
                     {
                         printf(" terminated by signal %d\n", cur_status);
