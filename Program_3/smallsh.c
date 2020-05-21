@@ -237,6 +237,13 @@ int main()
                         close(open_file);
                     }
 
+                    if (out_file == NULL)
+                    {
+                        int open_file = open("/dev/null", O_WRONLY);
+
+                        file_err_msg(out_file, open_file, 1, user_input, arg_count, arg_arr);
+                        close(open_file);
+                    }
                 }
 
                 if (execvp(arg_arr[0], arg_arr))
