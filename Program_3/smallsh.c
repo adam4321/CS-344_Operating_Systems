@@ -215,7 +215,7 @@ int main()
                 term_bg_procs(pid_count, bg_pid_arr);
                 exit(1);
             }
-            
+
             // Successfully forked child process 
             else if (cur_pid == 0)
             {
@@ -336,7 +336,7 @@ void free_memory(char *user_input, int arg_count, char *arg_arr[])
 // Print the command line and read the input
 char *get_input()
 {
-    // Print the command line
+    // Print the command line prompt
     printf(": ");
     fflush(stdout);
 
@@ -348,7 +348,6 @@ char *get_input()
 
     // Read the CLI input
     fgets(input_buf, BUF_SIZE, stdin);
-
     return input_buf;
 }
 
@@ -358,6 +357,7 @@ void print_arr(int arg_count, char *arg_arr[])
 {
     int i = 0;
 
+    // Print all parsed CLI arguments
     while (i < arg_count)
     {
         printf("%s ", arg_arr[i]);
@@ -374,6 +374,7 @@ void term_bg_procs(pid_t pid_count, pid_t bg_pid_arr[])
 {
     pid_t i = 0;
 
+    // While background processes remain in array, terminate them
     while (i < pid_count)
     {
         kill(bg_pid_arr[i], SIGTERM);
@@ -425,11 +426,13 @@ void get_bg_status(pid_t cur_pid, int cur_status)
 
     while (cur_pid > 0)
     {
+        // Print completed process pid and exit status
         if (WIFEXITED(cur_status))
         {
             printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
             fflush(stdout);
         }
+        // Print terminated process pid and signal
         else
         {
             printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
@@ -476,7 +479,7 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input,
         file_type = "output";
     }
     
-
+    // Print file open error
     if(open_file == -1)
     {
         fprintf(stderr, "cannot open %s for %s\n", cur_file, file_type);
@@ -484,6 +487,7 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input,
         free_memory(user_input, arg_count, arg_arr);
         exit(1);
     }
+    // Print file redirect error
     else if(dup2(open_file, file_dsc) == -1)
     {
         fprintf(stderr, "error in redirecting %s\n", file_type);
