@@ -71,8 +71,6 @@ int main()
     // Start the shell and keep it running until exit command
     while (true)
     {
-        // Print the command line and get the input
-        char *user_input = get_input();
         arg_count = 0;
         bg_mode = false;
         in_file = NULL;
@@ -80,6 +78,9 @@ int main()
 
         // Check for finished background processes
         get_bg_status(cur_pid, cur_status);
+
+        // Print the command line and get the input
+        char *user_input = get_input();
 
 
         // Skip any comments or blank lines
@@ -486,6 +487,7 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input,
         fprintf(stderr, "cannot open %s for %s\n", cur_file, file_type);
         fflush(stderr);
         free_memory(user_input, arg_count, arg_arr);
+        free(cur_file);
         exit(1);
     }
     // Print file redirect error
@@ -494,6 +496,7 @@ void file_err_msg(char *cur_file, int open_file, int file_dsc, char *user_input,
         fprintf(stderr, "error in redirecting %s\n", file_type);
         fflush(stderr);
         free_memory(user_input, arg_count, arg_arr);
+        free(cur_file);
         exit(1);
     }
 }
