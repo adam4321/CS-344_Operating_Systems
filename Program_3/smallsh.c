@@ -85,7 +85,6 @@ int main()
             continue;
         }
 
-
         // Pull the first token from the user input
         current_arg = strtok(user_input, " \n");
 
@@ -99,6 +98,7 @@ int main()
             // Exit the shell with a successfull status
             exit(EXIT_SUCCESS);
         }
+
         // Print status of the last foreground process
         else if (strcmp(current_arg, "status") == 0)
         {
@@ -196,7 +196,7 @@ int main()
                 cur_status = 1;
                 fprintf(stderr, "Error: process not started.\n");
                 term_bg_procs(pid_count, bg_pid_arr);
-                break;
+                exit(1);
             }
             // Successfully forked child process 
             else if (cur_pid == 0)
@@ -229,6 +229,13 @@ int main()
 
                 if (bg_mode == true)
                 {
+                    if (in_file == NULL)
+                    {
+                        int open_file = open("/dev/null", O_RDONLY);
+
+                        file_err_msg(in_file, open_file, 0, user_input, arg_count, arg_arr);
+                        close(open_file);
+                    }
 
                 }
 
