@@ -75,6 +75,24 @@ int main()
         in_file = NULL;
         out_file = NULL;
 
+        cur_pid = waitpid(-1, &cur_status, WNOHANG);
+
+        while (cur_pid > 0)
+        {
+            if (WIFEXITED(cur_status))
+            {
+                printf("background pid %d is done: exit value %d\n", cur_pid, cur_status);
+                fflush(stdout);
+            }
+            else
+            {
+                printf("background pid %d is done: terminated by signal %d\n", cur_pid, cur_status);
+                fflush(stdout);
+            }
+            
+            cur_pid = waitpid(-1, &cur_status, WNOHANG);
+        }
+
         // Skip any comments or blank lines
         if (user_input[0] == '#' || user_input[0] == ' ' || user_input[0] == '\n')
         {
@@ -120,8 +138,12 @@ int main()
                 // Pull the next argument
                 current_arg = strtok(NULL, " \n");
 
-                // Assign the input file
-                in_file = strdup(current_arg);
+                if (current_arg != NULL)
+                {
+                    // Assign the input file
+                    in_file = strdup(current_arg);
+                }
+
                 current_arg = strtok(NULL, " \n");
             }
             // Check for output redirection
@@ -129,9 +151,13 @@ int main()
             {
                 // Pull the next argument
                 current_arg = strtok(NULL, " \n");
+                
+                if (current_arg != NULL)
+                {
+                    // Assign the output file
+                    out_file = strdup(current_arg);
+                }
 
-                // Assign the output file
-                out_file = strdup(current_arg);
                 current_arg = strtok(NULL, " \n");
             }
             else
