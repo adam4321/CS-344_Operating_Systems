@@ -3,7 +3,8 @@
 **  Email:       wrighada@oregonstate.edu
 **  Date:        5/6/2020
 **  Description: Program 3 for spring 2020 OSU cs-344. This program implements
-**               a basic bare-bones shell for Unix.
+**               a basic bare-bones shell for Unix. It is tested with the
+**               included bash script p3gradingscript and it passes all tests.
 ******************************************************************************/
 
 #include <stdio.h>
