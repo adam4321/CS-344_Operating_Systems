@@ -1,3 +1,11 @@
+/******************************************************************************
+**  Author:       Adam Wright
+**  Email:        wrighada@oregonstate.edu
+**  Date:         5/23/2020
+**  Description:  OSU cs-344 spring 2020 Project 4. 
+**
+******************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -5,9 +13,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
+
 
 void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
+
 
 int main(int argc, char *argv[])
 {
