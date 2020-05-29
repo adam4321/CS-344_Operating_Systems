@@ -19,7 +19,7 @@ const char *CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
 /* MAIN ---------------------------------------------------------------------*/
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     // Check for the correct number of arguments
     if (argc != 2)
