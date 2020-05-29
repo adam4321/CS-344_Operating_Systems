@@ -2,8 +2,14 @@
 **  Author:       Adam Wright
 **  Email:        wrighada@oregonstate.edu
 **  Date:         5/23/2020
-**  Description:  OSU cs-344 spring 2020 Project 4. 
-**
+**  Description:  OSU cs-344 spring 2020 Project 4. This program is the client
+**                which interacts with the server otp_d. It can connect in 
+**                either get or post mode. It asks otp_d to either store or 
+**                retrieve messages for a given user.
+**  Program get:  otp post user plaintext key port
+**  Example call: otp post Ben plaintext1 mykey 57111
+**  Program post: otp get user key port
+**  Example call: otp get Ben mykey 57111
 ******************************************************************************/
 
 #include <stdio.h>
@@ -67,6 +73,7 @@ int main(int argc, char *argv[])
 	printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
 
 	close(socketFD); // Close the socket
+
 	return 0;
 }
 

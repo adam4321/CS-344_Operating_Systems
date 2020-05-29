@@ -6,6 +6,8 @@
 **                server daemon and is designed to be run in the background to
 **                listen to the port that was assigned at startup. It accepts
 **                get and post requests from the client program otp.
+**  Program call: otp_d lintening_port
+**  Example call: otp_d 57111 &
 ******************************************************************************/
 
 #include <stdio.h>
