@@ -2,8 +2,9 @@
 **  Author:       Adam Wright
 **  Email:        wrighada@oregonstate.edu
 **  Date:         5/23/2020
-**  Description:  OSU cs-344 spring 2020 Project 4. 
-**
+**  Description:  OSU cs-344 spring 2020 Project 4. This program creates a
+**                string of random characters from the defined character set
+**                of the length passed in as argv[1].
 ******************************************************************************/
 
 #include <stdlib.h>
@@ -27,6 +28,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    // Convert the string argument into an integer
     int input_length = atoi(argv[1]);
 
     // Seed the random function
