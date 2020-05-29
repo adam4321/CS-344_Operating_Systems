@@ -17,7 +17,7 @@
 #include <netinet/in.h>
 
 
-/* FUNCTION DEFINITIONS -----------------------------------------------------*/
+/* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
 void error(const char *msg);
 

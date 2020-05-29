@@ -16,8 +16,12 @@
 #include <netdb.h>
 
 
-void error(const char *msg) { perror(msg); exit(0); } // Error function used for reporting issues
+/* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
+void error(const char *msg);
+
+
+/* MAIN ---------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
@@ -64,4 +68,12 @@ int main(int argc, char *argv[])
 
 	close(socketFD); // Close the socket
 	return 0;
+}
+
+/* FUNCTION DEFINITIONS -----------------------------------------------------*/
+
+// Error function used for reporting issues
+void error(const char *msg)
+{
+    perror(msg); exit(0);
 }
