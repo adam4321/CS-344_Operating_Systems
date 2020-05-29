@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 
+#define CHAR_SET_SIZE   27
 
 const char *CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
@@ -22,12 +23,11 @@ int main(int argc, char **argv)
     // Check for the correct number of arguments
     if (argc != 2)
     {
-        fprintf(stderr, "Error: incorrect argument count to %s\n", argv[1]);
+        fprintf(stderr, "Error: incorrect argument count to %s\n", argv[0]);
         exit(1);
     }
 
     int input_length = atoi(argv[1]);
-    char user_input[input_length + 1];
 
     // Seed the random function
     srand(time(0));
@@ -36,8 +36,12 @@ int main(int argc, char **argv)
     int i = 0;
     while (i < input_length)
     {
-        
+        printf("%c", CHAR_SET[rand() % CHAR_SET_SIZE]);
+        i++;
     }
+
+    // End the string with a newline
+    printf("\n");
 
     return 0;
 }
