@@ -2,8 +2,10 @@
 **  Author:       Adam Wright
 **  Email:        wrighada@oregonstate.edu
 **  Date:         5/23/2020
-**  Description:  OSU cs-344 spring 2020 Project 4. 
-**
+**  Description:  OSU cs-344 spring 2020 Project 4. This program acts as a
+**                server daemon and is designed to be run in the background to
+**                listen to the port that was assigned at startup. It accepts
+**                get and post requests from the client program otp.
 ******************************************************************************/
 
 #include <stdio.h>
@@ -15,9 +17,12 @@
 #include <netinet/in.h>
 
 
+/* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
-void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
+void error(const char *msg);
 
+
+/* MAIN ---------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 {
@@ -60,5 +65,15 @@ int main(int argc, char *argv[])
 	if (charsRead < 0) error("ERROR writing to socket");
 	close(establishedConnectionFD); // Close the existing socket which is connected to the client
 	close(listenSocketFD); // Close the listening socket
+
 	return 0; 
+}
+
+
+/* FUNCTION DEFINITIONS -----------------------------------------------------*/
+
+// Error function used for reporting issues
+void error(const char *msg)
+{ 
+    perror(msg); exit(1);
 }
