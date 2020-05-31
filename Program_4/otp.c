@@ -6,6 +6,7 @@
 **                which interacts with the server otp_d. It can connect in 
 **                either get or post mode. It asks otp_d to either store or 
 **                retrieve messages for a given user.
+**
 **  Program get:  otp post user plaintext key port
 **  Example call: otp post Ben plaintext1 mykey 57111
 **  Program post: otp get user key port
@@ -76,6 +77,7 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
 
 /* FUNCTION DEFINITIONS -----------------------------------------------------*/
 
