@@ -19,6 +19,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#define MAX_CONNECTS     5
+
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
@@ -33,6 +35,9 @@ int main(int argc, char *argv[])
 	socklen_t sizeOfClientInfo;
 	char buffer[256];
 	struct sockaddr_in serverAddress, clientAddress;
+    pid_t spawn_pid;
+    int status = 0;
+    int num_connects = 0;
 
 	if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
 
@@ -47,26 +52,62 @@ int main(int argc, char *argv[])
 	listenSocketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
 	if (listenSocketFD < 0) error("ERROR opening socket");
 
-	// Enable the socket to begin listening
-	if (bind(listenSocketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to port
-		error("ERROR on binding");
-	listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
+    // Enable the socket to begin listening
+    if (bind(listenSocketFD, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to port
+        error("ERROR on binding");
+    listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
 
-	// Accept a connection, blocking if one is not available until one connects
-	sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
-	establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
-	if (establishedConnectionFD < 0) error("ERROR on accept");
+    while (1)
+    {
+        if (num_connects >= MAX_CONNECTS)
+        {
+            fprintf(stderr, "All connections used");
+            continue;
+        }
 
-	// Get the message from the client and display it
-	memset(buffer, '\0', 256);
-	charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
-	if (charsRead < 0) error("ERROR reading from socket");
-	printf("SERVER: I received this from the client: \"%s\"\n", buffer);
+        // Accept a connection, blocking if one is not available until one connects
+        sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
+        establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
+        if (establishedConnectionFD < 0)
+        {
+            error("ERROR on accept");
+            continue;
+        }
 
-	// Send a Success message back to the client
-	charsRead = send(establishedConnectionFD, "I am the server, and I got your message", 39, 0); // Send success back
-	if (charsRead < 0) error("ERROR writing to socket");
-	close(establishedConnectionFD); // Close the existing socket which is connected to the client
+        spawn_pid = fork();
+
+        if (spawn_pid == -1)
+        {
+            fprintf(stderr, "New connection had a failed process startup");
+            close(establishedConnectionFD);
+            continue;
+        }
+        else if (spawn_pid == 0)
+        {
+            num_connects++;
+            sleep(2);
+
+            // Get the message from the client and display it
+            memset(buffer, '\0', 256);
+            charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
+            if (charsRead < 0) error("ERROR reading from socket");
+            printf("SERVER: I received this from the client: \"%s\"\n", buffer);
+
+            // Send a Success message back to the client
+            charsRead = send(establishedConnectionFD, "I am the server, and I got your message", 39, 0); // Send success back
+            if (charsRead < 0) error("ERROR writing to socket");
+
+            close(establishedConnectionFD); // Close the existing socket which is connected to the client
+            num_connects--;
+            exit(0);
+        }
+        else
+        {
+			waitpid(spawn_pid, &status, 0);
+        }
+        
+    }
+
 	close(listenSocketFD); // Close the listening socket
 
 	return 0; 
