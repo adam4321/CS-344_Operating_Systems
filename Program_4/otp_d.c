@@ -78,5 +78,6 @@ int main(int argc, char *argv[])
 // Error function used for reporting issues
 void error(const char *msg)
 { 
-    perror(msg); exit(1);
+    perror(msg);
+    exit(1);
 }

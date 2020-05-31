@@ -22,6 +22,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+const char *CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
@@ -37,15 +39,44 @@ int main(int argc, char *argv[])
 	struct hostent* serverHostInfo;
 	char buffer[256];
     
-	if (argc < 3) { fprintf(stderr,"USAGE: %s hostname port\n", argv[0]); exit(0); } // Check usage & args
+    // Check usage & args
+	if (argc == 5)
+    {
+        if (strcmp(argv[1], "get") != 0)
+        {
+            fprintf(stderr,"USAGE: %s get user key port\n", argv[0]);
+            exit(2); 
+        }
+        else
+        {
+            portNumber = atoi(argv[4]); // Get the port number, convert to an integer from a string
+        }
+    }
+    else if(argc == 6)
+    {
+        if (strcmp(argv[1], "post") != 0)
+        {
+            fprintf(stderr,"USAGE: %s post user plaintext key port\n", argv[0]);
+            exit(2); 
+        }
+        else
+        {
+            portNumber = atoi(argv[5]); // Get the port number, convert to an integer from a string
+        }
+    }
+    else
+    {
+        fprintf(stderr, "Incorrect number of arguments\n");
+        exit(2);
+    }
+
 
 	// Set up the server address struct
 	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
-	portNumber = atoi(argv[2]); // Get the port number, convert to an integer from a string
 	serverAddress.sin_family = AF_INET; // Create a network-capable socket
 	serverAddress.sin_port = htons(portNumber); // Store the port number
-	serverHostInfo = gethostbyname(argv[1]); // Convert the machine name into a special form of address
-	if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }
+	serverHostInfo = gethostbyname("localhost"); // Convert the machine name into a special form of address
+	if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(2); }
 	memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
 
 	// Set up the socket
@@ -54,7 +85,20 @@ int main(int argc, char *argv[])
 	
 	// Connect to server
 	if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
-		error("CLIENT: ERROR connecting");
+	{
+        error("CLIENT: ERROR connecting");
+    }
+
+    if (strcmp(argv[1], "get") == 0)
+    {
+        printf("get request connected\n"); 
+    }
+
+    if (strcmp(argv[1], "post") == 0)
+    {
+        printf("post request connected\n");
+    }
+
 
 	// Get input message from user
 	printf("CLIENT: Enter text to send to the server, and then hit enter: ");
@@ -67,13 +111,18 @@ int main(int argc, char *argv[])
 	if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
 	if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
 
+
+
 	// Get return message from server
 	memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
 	charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
 	if (charsRead < 0) error("CLIENT: ERROR reading from socket");
 	printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
 
-	close(socketFD); // Close the socket
+
+
+    // Close the socket
+	close(socketFD);
 
 	return 0;
 }
@@ -84,5 +133,6 @@ int main(int argc, char *argv[])
 // Error function used for reporting issues
 void error(const char *msg)
 {
-    perror(msg); exit(0);
+    perror(msg);
+    exit(2);
 }
