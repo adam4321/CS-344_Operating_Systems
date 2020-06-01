@@ -68,6 +68,8 @@ int main(int argc, char *argv[])
         // Accept a connection, blocking if one is not available until one connects
         sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
         establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
+        sleep(2);
+        
         if (establishedConnectionFD < 0)
         {
             error("ERROR on accept");
@@ -85,7 +87,6 @@ int main(int argc, char *argv[])
         else if (spawn_pid == 0)
         {
             num_connects++;
-            sleep(2);
 
             // Get the message from the client and display it
             memset(buffer, '\0', 256);
@@ -105,7 +106,6 @@ int main(int argc, char *argv[])
         {
 			waitpid(spawn_pid, &status, 0);
         }
-        
     }
 
 	close(listenSocketFD); // Close the listening socket
