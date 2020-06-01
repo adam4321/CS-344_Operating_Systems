@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
         establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
         sleep(2);
-        
+
         if (establishedConnectionFD < 0)
         {
             error("ERROR on accept");
@@ -92,13 +92,49 @@ int main(int argc, char *argv[])
             memset(buffer, '\0', 256);
             charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
             if (charsRead < 0) error("ERROR reading from socket");
+
             printf("SERVER: I received this from the client: \"%s\"\n", buffer);
+
+            // Tokenize the request string and pull out the mode and user
+            char *token = strtok(buffer, " ");
+            char *mode = strdup(token);
+            printf("Mode: %s\n", mode);
+
+
+            token = strtok(NULL, " ");
+            char *user = strdup(token);
+            printf("User: %s\n", user);
+
+
+            // SERVER POST MODE -----------------------------------------------
+            if (strcmp(mode, "post") == 0)
+            {
+                // If in post mode then pull out the message from the request
+                token = strtok(NULL, "");
+                char *message = strdup(token);
+                printf("Message: %s\n", message);
+
+
+                free(message);
+            }
+
+
+            // SERVER GET MODE ------------------------------------------------
+
+            if (strcmp(mode, "get") == 0)
+            {
+
+
+
+            }
 
             // Send a Success message back to the client
             charsRead = send(establishedConnectionFD, "I am the server, and I got your message", 39, 0); // Send success back
             if (charsRead < 0) error("ERROR writing to socket");
 
             close(establishedConnectionFD); // Close the existing socket which is connected to the client
+            free(mode);
+            free(user);
             num_connects--;
             exit(0);
         }

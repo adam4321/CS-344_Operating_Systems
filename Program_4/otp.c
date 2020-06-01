@@ -22,6 +22,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+
 #define CHAR_SET_SIZE   27
 #define MAX_BUFFER_SIZE 80000
 
@@ -45,40 +46,41 @@ int main(int argc, char *argv[])
 	struct hostent* serverHostInfo;
 	char buffer[MAX_BUFFER_SIZE];
     
-    // Check usage & args
+    // Check the arguments passed on the command line
 	if (argc == 5)
     {
+        // 5 argument call should have get as the second argument
         if (strcmp(argv[1], "get") != 0)
         {
             fprintf(stderr,"USAGE: otp post user plaintext key port\n");
             fprintf(stderr,"USAGE: otp get user key port\n");
             exit(2); 
         }
-        else
-        {
-            portNumber = atoi(argv[4]);  // Get the port number, convert to an integer from a string
-        }
+        // Get the port number, convert to an integer from a string
+        else { portNumber = atoi(argv[4]); }
     }
     else if(argc == 6)
     {
+        // 6 argument call should have post as the second argument
         if (strcmp(argv[1], "post") != 0)
         {
             fprintf(stderr,"USAGE: otp post user plaintext key port\n");
             fprintf(stderr,"USAGE: otp get user key port\n");
             exit(2); 
         }
-        else
-        {
-            portNumber = atoi(argv[5]); // Get the port number, convert to an integer from a string
-        }
+        // Get the port number, convert to an integer from a string
+        else { portNumber = atoi(argv[5]); }
     }
+    // Calls to otp can only have 5 or 6 arguments
     else
     {
         fprintf(stderr, "Incorrect number of arguments to otp\n");
+        fprintf(stderr,"USAGE: otp post user plaintext key port\n");
+        fprintf(stderr,"USAGE: otp get user key port\n");
         exit(2);
     }
 
-    // CLIENT GET MODE
+    // CLIENT GET MODE --------------------------------------------------------
     if (strcmp(argv[1], "get") == 0)
     {
 
@@ -116,13 +118,13 @@ int main(int argc, char *argv[])
     }
 
 
-    // CLIENT POST MODE
+    // CLIENT POST MODE -------------------------------------------------------
     if (strcmp(argv[1], "post") == 0)
     {
         // Clear out the buffer array
         memset(buffer, '\0', sizeof(buffer));
         
-        // Alocate memory for the 3 strings
+        // Create 3 strings
         char plaintext_str[MAX_BUFFER_SIZE];
         char key_str[MAX_BUFFER_SIZE];
         char msg_str[MAX_BUFFER_SIZE];
@@ -135,7 +137,7 @@ int main(int argc, char *argv[])
         // Test that the key file is equal of longer than plaintext 
         if (plaintext_len > key_len)
         {
-            fprintf(stderr, "The key file must be equal or longer than plaintext\n");
+            fprintf(stderr, "The key file %s is too short\n", argv[4]);
             exit(1);
         }
 
@@ -154,7 +156,7 @@ int main(int argc, char *argv[])
         printf("%s\n", new_str);
 
 
-        // Assemble the message string
+        // Assemble the post message string
         strcat(buffer, argv[1]);
         strcat(buffer, " ");
         strcat(buffer, argv[2]);
@@ -236,7 +238,7 @@ int file_read_test(char *name, char *buffer, int size)
     for (i = 0; i < length; i++)
     {
         if (!isupper(buffer[i]) && buffer[i] != ' ') {
-            fprintf(stderr, "File \"%s\" contains bad characters\n", name);
+            fprintf(stderr, "%s contains bad characters\n", name);
             fclose(fptr);
             exit(1);
         }
