@@ -80,43 +80,6 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    // CLIENT GET MODE --------------------------------------------------------
-    if (strcmp(argv[1], "get") == 0)
-    {
-
-        memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer array
-
-        int i;
-        for (i = 1; i < 4; i++)
-        {
-            strcat(buffer, argv[i]);
-            strcat(buffer, " ");
-        }
-
-        // Set up the server address struct
-        memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
-        serverAddress.sin_family = AF_INET; // Create a network-capable socket
-        serverAddress.sin_port = htons(portNumber); // Store the port number
-        serverHostInfo = gethostbyname("localhost"); // Convert the machine name into a special form of address
-        if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(2); }
-        memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
-
-        // Set up the socket
-        socketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
-        if (socketFD < 0) error("CLIENT: ERROR opening socket");
-        
-        // Connect to server
-        if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
-        {
-            error("CLIENT: ERROR connecting");
-        }
-
-        // Send message to server
-        charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
-        if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
-        if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
-    }
-
 
     // CLIENT POST MODE -------------------------------------------------------
     if (strcmp(argv[1], "post") == 0)
@@ -142,18 +105,20 @@ int main(int argc, char *argv[])
         }
 
 
-        printf("%s\n", key_str);
-        printf("%s\n", plaintext_str);
+        // printf("%s\n", key_str);
+        // printf("%s\n", plaintext_str);
         
 
         // Call the function to encrypt the plaintext string
         encrypt_msg(msg_str, plaintext_str, key_str);
-        printf("%s\n", msg_str);
+
+        // printf("%s\n", msg_str);
 
         char new_str[MAX_BUFFER_SIZE];
         memset(new_str, '\0', sizeof(MAX_BUFFER_SIZE));
         decrypt_msg(new_str, msg_str, key_str);
-        printf("%s\n", new_str);
+        
+        // printf("%s\n", new_str);
 
 
         // Assemble the post message string
@@ -185,6 +150,43 @@ int main(int argc, char *argv[])
         charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
         if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
         if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
+    }
+
+
+    // CLIENT GET MODE --------------------------------------------------------
+    if (strcmp(argv[1], "get") == 0)
+    {
+
+        memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer array
+
+        strcat(buffer, argv[1]);
+        strcat(buffer, " ");
+        strcat(buffer, argv[2]);
+        
+
+        // Set up the server address struct
+        memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
+        serverAddress.sin_family = AF_INET; // Create a network-capable socket
+        serverAddress.sin_port = htons(portNumber); // Store the port number
+        serverHostInfo = gethostbyname("localhost"); // Convert the machine name into a special form of address
+        if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(2); }
+        memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
+
+        // Set up the socket
+        socketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
+        if (socketFD < 0) error("CLIENT: ERROR opening socket");
+        
+        // Connect to server
+        if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
+        {
+            error("CLIENT: ERROR connecting");
+        }
+
+        // Send message to server
+        charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
+        if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
+        if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
+        
     }
 
 	// Get return message from server

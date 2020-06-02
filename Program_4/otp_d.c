@@ -18,6 +18,9 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
+#include <dirent.h>
+
 
 #define MAX_CONNECTS     5
 
@@ -57,35 +60,45 @@ int main(int argc, char *argv[])
         error("ERROR on binding");
     listen(listenSocketFD, 5); // Flip the socket on - it can now receive up to 5 connections
 
+
+    // Infinite loop creating child processes to manage 5 connection on the port 
     while (1)
     {
+        // Support up to 5 simultaneous connections
         if (num_connects >= MAX_CONNECTS)
         {
-            fprintf(stderr, "All connections used");
+            fprintf(stderr, "All connections currently used\n");
             continue;
         }
 
         // Accept a connection, blocking if one is not available until one connects
         sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
         establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
+
+        // PROJECT REQUIREMENT THAT THE SERVER SLEEP FOR 2 SECONDS AFTER CONNECTION ACCTEPTANCE
         sleep(2);
 
+        // Report a connection error
         if (establishedConnectionFD < 0)
         {
             error("ERROR on accept");
             continue;
         }
 
+        // Fork a new process for the new connection
         spawn_pid = fork();
 
+        // Verify that the child process started
         if (spawn_pid == -1)
         {
-            fprintf(stderr, "New connection had a failed process startup");
+            fprintf(stderr, "New connection had a failed process startup\n");
             close(establishedConnectionFD);
             continue;
         }
+        // Child process to handle a new connection
         else if (spawn_pid == 0)
         {
+            // Increment the number of connections
             num_connects++;
 
             // Get the message from the client and display it
@@ -95,15 +108,17 @@ int main(int argc, char *argv[])
 
             printf("SERVER: I received this from the client: \"%s\"\n", buffer);
 
-            // Tokenize the request string and pull out the mode and user
+            // Tokenize the request string and pull out the mode
             char *token = strtok(buffer, " ");
             char *mode = strdup(token);
-            printf("Mode: %s\n", mode);
 
+            // printf("Mode: %s\n", mode);
 
+            // Pull out the user token
             token = strtok(NULL, " ");
             char *user = strdup(token);
-            printf("User: %s\n", user);
+
+            // printf("User: %s\n", user);
 
 
             // SERVER POST MODE -----------------------------------------------
@@ -112,39 +127,72 @@ int main(int argc, char *argv[])
                 // If in post mode then pull out the message from the request
                 token = strtok(NULL, "");
                 char *message = strdup(token);
-                printf("Message: %s\n", message);
+                strcat(message, "\n");
 
+                // Check if the user's directory exists, and if not create it
+                struct stat st= {0};
+                if (stat(user, &st) == -1)
+                {
+                    // Create the directory with the needed permissions
+                    mkdir(user, 0755);
+                }
 
+                // printf("Message: %s", message);
+
+                // Build up the ciphertext file path from username and the current process pid
+                char file_path[255];
+                memset(file_path, '\0', sizeof(file_path));
+                int pid = getpid();
+                sprintf(file_path, "%s/%d", user, pid);
+
+                // Create a new file for the ciphertext
+                FILE *ciphertext = fopen(file_path, "w+");
+
+                // Write the encoded message to the ciphertext file
+                fprintf(ciphertext, message);
+
+                // Print the path to the file
+                printf("./%s\n", file_path);
+
+                // Close the file and free the message
+                fclose(ciphertext);
                 free(message);
             }
 
 
             // SERVER GET MODE ------------------------------------------------
-
             if (strcmp(mode, "get") == 0)
             {
+                // Assemble the file name from the username and oldest 
+                char file_name[255];
+                memset(file_name, '\0', sizeof(file_name));
+
+
+                FILE *ciphertext = fopen(file_name, "r");
 
 
 
+
+                fclose(ciphertext);
             }
 
             // Send a Success message back to the client
             charsRead = send(establishedConnectionFD, "I am the server, and I got your message", 39, 0); // Send success back
             if (charsRead < 0) error("ERROR writing to socket");
 
+            // Close and free the alocated resources
             close(establishedConnectionFD); // Close the existing socket which is connected to the client
             free(mode);
             free(user);
             num_connects--;
             exit(0);
         }
-        else
-        {
-			waitpid(spawn_pid, &status, 0);
-        }
+        // Parent process awaits the completion of it's children
+        else { waitpid(spawn_pid, &status, 0); }
     }
 
-	close(listenSocketFD); // Close the listening socket
+    // Close the listening socket
+	close(listenSocketFD);
 
 	return 0; 
 }
