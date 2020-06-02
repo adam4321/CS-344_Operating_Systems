@@ -23,7 +23,7 @@
 #include <time.h>
 
 
-#define MAX_CONNECTS     10
+#define MAX_CONNECTS     5
 #define MAX_BUFFER_SIZE  75000
 
 
