@@ -23,11 +23,13 @@
 
 
 #define MAX_CONNECTS     5
+#define MAX_BUFFER_SIZE  80000
 
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
 void error(const char *msg);
+void Get_Oldest_File(char *newestDirName, char *user);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -163,17 +165,53 @@ int main(int argc, char *argv[])
             // SERVER GET MODE ------------------------------------------------
             if (strcmp(mode, "get") == 0)
             {
+                // Assemble the directory path
+                char dir_path[255];
+                memset(dir_path, '\0', sizeof(dir_path));
+                sprintf(dir_path, "./%s", user);
+
                 // Assemble the file name from the username and oldest 
-                char file_name[255];
-                memset(file_name, '\0', sizeof(file_name));
+                char newestDirName[255];
+                // memset(file_name, '\0', sizeof(file_name));
+
+                // // Open the user directory and find the oldest file
+                // int oldestFileTime = -1; /* Modified timestamp of newest subdir examined */
+                // DIR *user_dir;
+                // struct dirent *ent;
+                // struct stat fileAttributes; /* Holds information we've gained about subdir */
+                // if ((user_dir = opendir(dir_path)) != NULL)
+                // {
+                //     while ((ent = readdir(user_dir)) != NULL)
+                //     {
+                //         stat(ent->d_name, &fileAttributes); /*Get attributes of the entry */
+                //         printf("%s\n", ent->d_name);
+                //         printf("%s\n", fileAttributes.st_mtime);
+                //     }
+                //     closedir(user_dir);
+                // }
+                // else
+                // {
+                //     fprintf(stderr, "The user directory %s was not found", dir_path);
+                //     exit(1);
+                // }
+
+                Get_Oldest_File(newestDirName, dir_path);
+                printf("%s\n", newestDirName);
+                
+
+                // // Read in the encoded message from the file
+                // char enc_msg[MAX_BUFFER_SIZE];
+                // FILE *ciphertext = fopen(file_name, "r");
+
+                // memset(enc_msg, '\0', sizeof(enc_msg));
+                // fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
+                // enc_msg[strcspn(enc_msg, "\n")] = '\0';
+
+                // fclose(ciphertext);
 
 
-                FILE *ciphertext = fopen(file_name, "r");
 
-
-
-
-                fclose(ciphertext);
+                
             }
 
             // Send a Success message back to the client
@@ -206,3 +244,45 @@ void error(const char *msg)
     perror(msg);
     exit(1);
 }
+
+
+void Get_Oldest_File(char *newestDirName, char *dir_path)
+{
+  long newestDirTime = (unsigned long)time(NULL); /* Modified timestamp of newest subdir examined */
+  memset(newestDirName, '\0', sizeof(newestDirName)); /* newest directory that contains my prefix */
+  printf("%d\n", newestDirTime);
+
+  DIR *dirToCheck; /*Holds the directory we're starting in */
+  struct dirent *fileInDir; /* Holds the current subdir of the starting dir */
+  struct stat dirAttributes; /* Holds information we've gained about subdir */
+
+  dirToCheck = opendir(dir_path); /* Open up the directory this program was run in */
+
+    if (dirToCheck > 0) /* Make sure the current directory could be opened */
+    {
+        while ((fileInDir = readdir(dirToCheck)) != NULL) /* Check each entry in dir */
+        {
+            if (strcmp(fileInDir->d_name, ".") != 0 || strcmp(fileInDir->d_name, "..") != 0) /* If entry has prefix */
+            {
+                stat(fileInDir->d_name, &dirAttributes); /*Get attributes of the entry */
+                printf("%s\n", fileInDir->d_name);
+
+                if ((unsigned long)dirAttributes.st_mtime < newestDirTime) /* If this time is bigger */
+                {
+                    
+                    newestDirTime = (unsigned long)dirAttributes.st_mtime;
+                    memset(newestDirName, '\0', sizeof(newestDirName));
+                    strcpy(newestDirName, fileInDir->d_name); /* Store the directory */
+                }
+            }
+        }
+    }
+    else
+    {
+        fprintf(stderr, "The user directory %s wasn't found\n", dir_path);
+    }
+    
+
+  closedir(dirToCheck); /* Close the directory we opened */
+}
+
