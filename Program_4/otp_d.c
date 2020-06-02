@@ -24,7 +24,7 @@
 
 
 #define MAX_CONNECTS     10
-#define MAX_BUFFER_SIZE  80000
+#define MAX_BUFFER_SIZE  75000
 
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 {
 	int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
 	socklen_t sizeOfClientInfo;
-	char buffer[256];
+	char buffer[MAX_BUFFER_SIZE];
 	struct sockaddr_in serverAddress, clientAddress;
     pid_t spawn_pid;
     int status = 0;
@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
+        
+
         // Fork a new process for the new connection
         spawn_pid = fork();
 
@@ -100,13 +102,13 @@ int main(int argc, char *argv[])
         {
             // PROJECT REQUIREMENT THAT THE SERVER SLEEP FOR 2 SECONDS AFTER CONNECTION ACCTEPTANCE
             sleep(2);
-            
+
             // Increment the number of connections
             num_connects++;
 
             // Get the message from the client and display it
-            memset(buffer, '\0', 256);
-            charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
+            memset(buffer, '\0', sizeof(buffer));
+            charsRead = recv(establishedConnectionFD, buffer, sizeof(buffer), 0); // Read the client's message from the socket
             if (charsRead < 0) error("ERROR reading from socket");
 
             // printf("SERVER: I received this from the client: \"%s\"\n", buffer);
