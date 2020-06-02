@@ -114,9 +114,9 @@ int main(int argc, char *argv[])
 
         // printf("%s\n", msg_str);
 
-        char new_str[MAX_BUFFER_SIZE];
-        memset(new_str, '\0', sizeof(MAX_BUFFER_SIZE));
-        decrypt_msg(new_str, msg_str, key_str);
+        // char new_str[MAX_BUFFER_SIZE];
+        // memset(new_str, '\0', sizeof(MAX_BUFFER_SIZE));
+        // decrypt_msg(new_str, msg_str, key_str);
         
         // printf("%s\n", new_str);
 
@@ -150,6 +150,16 @@ int main(int argc, char *argv[])
         charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
         if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
         if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
+
+        // // Get return message from server
+        // memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
+        // charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
+        // if (charsRead < 0)
+        // {
+        //     error("CLIENT: ERROR reading from socket");
+        //     exit(2);
+        // }
+        // printf("%s\n", buffer);
     }
 
 
@@ -186,24 +196,48 @@ int main(int argc, char *argv[])
         charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
         if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
         if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
+
+        // Get return message from server
+        memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
+        charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
+        if (charsRead < 0)
+        {
+            error("CLIENT: ERROR reading from socket");
+            exit(2);
+        }
+
+        // Check for no directory error
+        if (strstr(buffer, "The user directory") != NULL)
+        {
+            exit(1);
+        }
+
+        // Check for no file error
+        if (strstr(buffer, "No file for") != NULL)
+        {
+            exit(1);
+        }
+
+        // Read in the key file
+        char key_str[MAX_BUFFER_SIZE];
+        memset(key_str, '\0', sizeof(MAX_BUFFER_SIZE));
+        long key_len = file_read_test(argv[3], key_str, MAX_BUFFER_SIZE);
+
+        // Array for the decrypted message
+        char final_msg[MAX_BUFFER_SIZE];
+        memset(final_msg, '\0', sizeof(MAX_BUFFER_SIZE));
+
+        // Decrypt the message
+        decrypt_msg(final_msg, buffer, key_str);
         
+        // printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
+        printf("%s\n", final_msg);
     }
-
-	// Get return message from server
-	memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
-	charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-	if (charsRead < 0)
-    {
-        error("CLIENT: ERROR reading from socket");
-        exit(2);
-    }
-	printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
-
 
     // Close the socket
-	close(socketFD);
+    close(socketFD);
 
-	return 0;
+    return 0;
 }
 
 

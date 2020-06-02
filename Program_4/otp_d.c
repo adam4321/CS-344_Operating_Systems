@@ -20,16 +20,17 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <time.h>
 
 
-#define MAX_CONNECTS     5
+#define MAX_CONNECTS     10
 #define MAX_BUFFER_SIZE  80000
 
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
 void error(const char *msg);
-void Get_Oldest_File(char *newestDirName, char *user);
+void Get_Oldest_File(char *file_name, char *dir_path);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -77,9 +78,6 @@ int main(int argc, char *argv[])
         sizeOfClientInfo = sizeof(clientAddress); // Get the size of the address for the client that will connect
         establishedConnectionFD = accept(listenSocketFD, (struct sockaddr *)&clientAddress, &sizeOfClientInfo); // Accept
 
-        // PROJECT REQUIREMENT THAT THE SERVER SLEEP FOR 2 SECONDS AFTER CONNECTION ACCTEPTANCE
-        sleep(2);
-
         // Report a connection error
         if (establishedConnectionFD < 0)
         {
@@ -100,6 +98,9 @@ int main(int argc, char *argv[])
         // Child process to handle a new connection
         else if (spawn_pid == 0)
         {
+            // PROJECT REQUIREMENT THAT THE SERVER SLEEP FOR 2 SECONDS AFTER CONNECTION ACCTEPTANCE
+            sleep(2);
+            
             // Increment the number of connections
             num_connects++;
 
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
             charsRead = recv(establishedConnectionFD, buffer, 255, 0); // Read the client's message from the socket
             if (charsRead < 0) error("ERROR reading from socket");
 
-            printf("SERVER: I received this from the client: \"%s\"\n", buffer);
+            // printf("SERVER: I received this from the client: \"%s\"\n", buffer);
 
             // Tokenize the request string and pull out the mode
             char *token = strtok(buffer, " ");
@@ -156,6 +157,16 @@ int main(int argc, char *argv[])
                 // Print the path to the file
                 printf("./%s\n", file_path);
 
+                // // Create an array for the return message
+                // char return_msg[MAX_BUFFER_SIZE];
+                // memset(return_msg, '\0', sizeof(MAX_BUFFER_SIZE));
+
+                // sprintf(return_msg, "./%s", file_path);
+
+                // // Send a Success message back to the client
+                // charsRead = send(establishedConnectionFD, return_msg, sizeof(return_msg), 0); // Send success back
+                // if (charsRead < 0) error("ERROR writing to socket");
+
                 // Close the file and free the message
                 fclose(ciphertext);
                 free(message);
@@ -171,52 +182,97 @@ int main(int argc, char *argv[])
                 sprintf(dir_path, "./%s", user);
 
                 // Assemble the file name from the username and oldest 
-                char newestDirName[255];
-                // memset(file_name, '\0', sizeof(file_name));
+                char file_name[255];
+                memset(file_name, '\0', sizeof(file_name));
 
-                // // Open the user directory and find the oldest file
-                // int oldestFileTime = -1; /* Modified timestamp of newest subdir examined */
-                // DIR *user_dir;
-                // struct dirent *ent;
-                // struct stat fileAttributes; /* Holds information we've gained about subdir */
-                // if ((user_dir = opendir(dir_path)) != NULL)
-                // {
-                //     while ((ent = readdir(user_dir)) != NULL)
-                //     {
-                //         stat(ent->d_name, &fileAttributes); /*Get attributes of the entry */
-                //         printf("%s\n", ent->d_name);
-                //         printf("%s\n", fileAttributes.st_mtime);
-                //     }
-                //     closedir(user_dir);
-                // }
-                // else
-                // {
-                //     fprintf(stderr, "The user directory %s was not found", dir_path);
-                //     exit(1);
-                // }
+                int oldest_time = (int)time(NULL); /* Modified timestamp of newest subdir examined */
 
-                Get_Oldest_File(newestDirName, dir_path);
-                printf("%s\n", newestDirName);
-                
+                DIR *dir_to_check; /*Holds the directory we're starting in */
+                struct dirent *file_in_dir; /* Holds the current subdir of the starting dir */
+                struct stat file_attr; /* Holds information we've gained about subdir */
 
-                // // Read in the encoded message from the file
-                // char enc_msg[MAX_BUFFER_SIZE];
-                // FILE *ciphertext = fopen(file_name, "r");
+                dir_to_check = opendir(dir_path); /* Open up the directory this program was run in */
 
-                // memset(enc_msg, '\0', sizeof(enc_msg));
-                // fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
-                // enc_msg[strcspn(enc_msg, "\n")] = '\0';
+                if (dir_to_check == NULL) /* Make sure the current directory could be opened */
+                {
+                    // Return an error to the client
+                    char no_dir[255];
+                    memset(no_dir, '\0', sizeof(no_dir));
 
-                // fclose(ciphertext);
+                    sprintf(no_dir, "The user directory %s wasn't found\n", dir_path);
+                    fprintf(stderr, "The user directory %s wasn't found\n", dir_path);
 
+                    // Send a Error message back to the client
+                    charsRead = send(establishedConnectionFD, no_dir, sizeof(no_dir), 0); // Send error back
+                    if (charsRead < 0) error("ERROR writing to socket");
+                }
+                else
+                {
+                    // Search the directory for the oldest file
+                    while ((file_in_dir = readdir(dir_to_check)) != NULL) /* Check each entry in dir */
+                    {
+                        if (strstr(file_in_dir->d_name, ".") == NULL) /* If entry has prefix */
+                        {
+                            stat(file_in_dir->d_name, &file_attr); /*Get attributes of the entry */
+                            // printf("%s :%d\n", file_in_dir->d_name, (int)file_attr.st_mtime);
 
+                            if ((int)file_attr.st_mtime <= oldest_time) /* If this time is lower */
+                            {
+                                
+                                oldest_time = file_attr.st_mtime;
+                                memset(file_name, '\0', sizeof(file_name));
+                                strcpy(file_name, file_in_dir->d_name); /* Store the directory */
+                            }
+                        }
+                    }
+                    
+                    closedir(dir_to_check); /* Close the directory we opened */
 
-                
+                    // Get_Oldest_File(file_name, dir_path);
+                    // printf("%s\n", file_name);
+
+                    // Print an error if no file was found
+                    if (file_name[0] == '\0')
+                    {
+                        // Return an error to the client
+                        char no_dir[255];
+                        memset(no_dir, '\0', sizeof(no_dir));
+
+                        sprintf(no_dir, "No file for %s was found\n", user);
+                        fprintf(stderr, "No file for %s was found\n", user);
+
+                        // Send a Error message back to the client
+                        charsRead = send(establishedConnectionFD, no_dir, sizeof(no_dir), 0); // Send error back
+                        if (charsRead < 0) error("ERROR writing to socket");
+                    }
+
+                    char full_path[255];
+                    memset(full_path, '\0', sizeof(full_path));
+                    sprintf(full_path, "%s/%s", dir_path, file_name);
+                    
+
+                    // Read in the encoded message from the file
+                    char enc_msg[MAX_BUFFER_SIZE];
+                    memset(enc_msg, '\0', sizeof(enc_msg));
+
+                    FILE *ciphertext = fopen(full_path, "r");
+
+                    
+                    fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
+                    enc_msg[strcspn(enc_msg, "\n")] = '\0';
+
+                    fclose(ciphertext);
+
+                    // Delete the file
+                    remove(full_path);
+
+                    // printf("%s\n", enc_msg);
+
+                    // Send a Success message back to the client
+                    charsRead = send(establishedConnectionFD, enc_msg, sizeof(enc_msg), 0); // Send success back
+                    if (charsRead < 0) error("ERROR writing to socket");
+                }
             }
-
-            // Send a Success message back to the client
-            charsRead = send(establishedConnectionFD, "I am the server, and I got your message", 39, 0); // Send success back
-            if (charsRead < 0) error("ERROR writing to socket");
 
             // Close and free the alocated resources
             close(establishedConnectionFD); // Close the existing socket which is connected to the client
@@ -226,7 +282,7 @@ int main(int argc, char *argv[])
             exit(0);
         }
         // Parent process awaits the completion of it's children
-        else { waitpid(spawn_pid, &status, 0); }
+        // else { waitpid(spawn_pid, &status, 0); }
     }
 
     // Close the listening socket
@@ -246,43 +302,9 @@ void error(const char *msg)
 }
 
 
-void Get_Oldest_File(char *newestDirName, char *dir_path)
+// Find the oldest file for the requested user
+void Get_Oldest_File(char *file_name, char *dir_path)
 {
-  long newestDirTime = (unsigned long)time(NULL); /* Modified timestamp of newest subdir examined */
-  memset(newestDirName, '\0', sizeof(newestDirName)); /* newest directory that contains my prefix */
-  printf("%d\n", newestDirTime);
 
-  DIR *dirToCheck; /*Holds the directory we're starting in */
-  struct dirent *fileInDir; /* Holds the current subdir of the starting dir */
-  struct stat dirAttributes; /* Holds information we've gained about subdir */
-
-  dirToCheck = opendir(dir_path); /* Open up the directory this program was run in */
-
-    if (dirToCheck > 0) /* Make sure the current directory could be opened */
-    {
-        while ((fileInDir = readdir(dirToCheck)) != NULL) /* Check each entry in dir */
-        {
-            if (strcmp(fileInDir->d_name, ".") != 0 || strcmp(fileInDir->d_name, "..") != 0) /* If entry has prefix */
-            {
-                stat(fileInDir->d_name, &dirAttributes); /*Get attributes of the entry */
-                printf("%s\n", fileInDir->d_name);
-
-                if ((unsigned long)dirAttributes.st_mtime < newestDirTime) /* If this time is bigger */
-                {
-                    
-                    newestDirTime = (unsigned long)dirAttributes.st_mtime;
-                    memset(newestDirName, '\0', sizeof(newestDirName));
-                    strcpy(newestDirName, fileInDir->d_name); /* Store the directory */
-                }
-            }
-        }
-    }
-    else
-    {
-        fprintf(stderr, "The user directory %s wasn't found\n", dir_path);
-    }
-    
-
-  closedir(dirToCheck); /* Close the directory we opened */
 }
 
