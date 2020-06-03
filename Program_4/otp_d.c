@@ -30,7 +30,6 @@
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
 
 void error(const char *msg);
-void Get_Oldest_File(char *file_name, char *dir_path);
 
 
 /* MAIN ---------------------------------------------------------------------*/
@@ -86,7 +85,6 @@ int main(int argc, char *argv[])
         }
 
         
-
         // Fork a new process for the new connection
         spawn_pid = fork();
 
@@ -111,19 +109,13 @@ int main(int argc, char *argv[])
             charsRead = recv(establishedConnectionFD, buffer, sizeof(buffer), 0); // Read the client's message from the socket
             if (charsRead < 0) error("ERROR reading from socket");
 
-            // printf("SERVER: I received this from the client: \"%s\"\n", buffer);
-
             // Tokenize the request string and pull out the mode
             char *token = strtok(buffer, " ");
             char *mode = strdup(token);
 
-            // printf("Mode: %s\n", mode);
-
             // Pull out the user token
             token = strtok(NULL, " ");
             char *user = strdup(token);
-
-            // printf("User: %s\n", user);
 
 
             // SERVER POST MODE -----------------------------------------------
@@ -141,8 +133,6 @@ int main(int argc, char *argv[])
                     // Create the directory with the needed permissions
                     mkdir(user, 0755);
                 }
-
-                // printf("Message: %s", message);
 
                 // Build up the ciphertext file path from username and the current process pid
                 char file_path[255];
@@ -248,27 +238,23 @@ int main(int argc, char *argv[])
                         if (charsRead < 0) error("ERROR writing to socket");
                     }
 
+                    // Piece together the path of the requested ciphertext file
                     char full_path[255];
                     memset(full_path, '\0', sizeof(full_path));
                     sprintf(full_path, "%s/%s", dir_path, file_name);
                     
-
-                    // Read in the encoded message from the file
+                    // Create a buffer for the ciphertext data
                     char enc_msg[MAX_BUFFER_SIZE];
                     memset(enc_msg, '\0', sizeof(enc_msg));
 
+                    // Read in the encoded message from the file
                     FILE *ciphertext = fopen(full_path, "r");
-
-                    
                     fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
                     enc_msg[strcspn(enc_msg, "\n")] = '\0';
 
+                    // Close and delete the ciphertext file
                     fclose(ciphertext);
-
-                    // Delete the file
                     remove(full_path);
-
-                    // printf("%s\n", enc_msg);
 
                     // Send a Success message back to the client
                     charsRead = send(establishedConnectionFD, enc_msg, sizeof(enc_msg), 0); // Send success back
@@ -302,11 +288,3 @@ void error(const char *msg)
     perror(msg);
     exit(1);
 }
-
-
-// Find the oldest file for the requested user
-void Get_Oldest_File(char *file_name, char *dir_path)
-{
-
-}
-
