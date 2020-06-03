@@ -177,15 +177,15 @@ int main(int argc, char *argv[])
                 char file_name[255];
                 memset(file_name, '\0', sizeof(file_name));
 
-                int oldest_time = (int)time(NULL); /* Modified timestamp of newest subdir examined */
+                int oldest_time = (int)time(NULL); // Modified timestamp of newest subdir examined
 
-                DIR *dir_to_check; /*Holds the directory we're starting in */
-                struct dirent *file_in_dir; /* Holds the current subdir of the starting dir */
-                struct stat file_attr; /* Holds information we've gained about subdir */
+                DIR *dir_to_check; // Holds the directory we're starting in
+                struct dirent *file_in_dir; // Holds the current subdir of the starting dir
+                struct stat file_attr; // Holds information we've gained about subdir
 
-                dir_to_check = opendir(dir_path); /* Open up the directory this program was run in */
+                dir_to_check = opendir(dir_path); // Open up the directory this program was run in
 
-                if (dir_to_check == NULL) /* Make sure the current directory could be opened */
+                if (dir_to_check == NULL) // Make sure the current directory could be opened
                 {
                     // Return an error to the client
                     char no_dir[255];
@@ -201,24 +201,24 @@ int main(int argc, char *argv[])
                 else
                 {
                     // Search the directory for the oldest file
-                    while ((file_in_dir = readdir(dir_to_check)) != NULL) /* Check each entry in dir */
+                    while ((file_in_dir = readdir(dir_to_check)) != NULL) // Check each entry in dir
                     {
-                        if (strstr(file_in_dir->d_name, ".") == NULL) /* If entry has prefix */
+                        if (strstr(file_in_dir->d_name, ".") == NULL) // If entry has prefix
                         {
-                            stat(file_in_dir->d_name, &file_attr); /*Get attributes of the entry */
+                            stat(file_in_dir->d_name, &file_attr); // Get attributes of the entry
                             // printf("%s :%d\n", file_in_dir->d_name, (int)file_attr.st_mtime);
 
-                            if ((int)file_attr.st_mtime <= oldest_time) /* If this time is lower */
+                            if ((int)file_attr.st_mtime <= oldest_time) // If this time is lower
                             {
                                 
                                 oldest_time = file_attr.st_mtime;
                                 memset(file_name, '\0', sizeof(file_name));
-                                strcpy(file_name, file_in_dir->d_name); /* Store the directory */
+                                strcpy(file_name, file_in_dir->d_name); // Store the directory
                             }
                         }
                     }
                     
-                    closedir(dir_to_check); /* Close the directory we opened */
+                    closedir(dir_to_check); // Close the directory we opened
 
                     // Get_Oldest_File(file_name, dir_path);
                     // printf("%s\n", file_name);
