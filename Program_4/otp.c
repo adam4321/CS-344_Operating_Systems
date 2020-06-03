@@ -24,7 +24,7 @@
 
 
 #define CHAR_SET_SIZE   27
-#define MAX_BUFFER_SIZE 80000
+#define MAX_BUFFER_SIZE 75000
 
 const char *CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
@@ -217,7 +217,7 @@ void error(const char *msg)
 }
 
 
-// Check the size of the passed in files
+// Read in the file / test the characters / return it's length
 int file_read_test(char *name, char *buffer, int size)
 {  
     FILE *fptr = fopen(name, "r");
@@ -257,16 +257,21 @@ int file_read_test(char *name, char *buffer, int size)
 void encrypt_msg(char *msg_str, char *plaintext_str, char *key_str)
 {
     int plain_text_len = strlen(plaintext_str);
-    int key_len = strlen(key_str);
     int i;
 
-
+    // Loop through the plaintext string
     for (i = 0; i < plain_text_len; i++)
     {
+        // Find the position in the alphabet of the plaintext character
         int msg_idx = strchr(CHAR_SET, plaintext_str[i]) - CHAR_SET;
+
+        // Add the position in the alphabet of the key character
         msg_idx += strchr(CHAR_SET, key_str[i]) - CHAR_SET;
+
+        // Clock arithmetic to wrap around Z
         msg_idx %= CHAR_SET_SIZE;
 
+        // Insert the encrypted character
         msg_str[i] = CHAR_SET[msg_idx];
     }
 
@@ -279,23 +284,29 @@ void encrypt_msg(char *msg_str, char *plaintext_str, char *key_str)
 void decrypt_msg(char *msg_str, char *cipher_str, char *key_str)
 {
     int cipher_len = strlen(cipher_str);
-    int key_len = strlen(key_str);
     int i;
 
-
+    // Loop through the ciphertext string
     for (i = 0; i < cipher_len; i++)
     {
+        // Find the position in the alphabet of the ciphertext character
         int msg_idx = strchr(CHAR_SET, cipher_str[i]) - CHAR_SET;
+        
+        // Subtract the position in the alphabet of the key character
         msg_idx -= (strchr(CHAR_SET, key_str[i]) - CHAR_SET);
+
+        // If below Z then add the char set size
         if (msg_idx < 0)
         {
             msg_idx += CHAR_SET_SIZE;
         }
+        // If positive, it wraps around Z so mod by char set size
         else
         {
             msg_idx %= CHAR_SET_SIZE;
         }
         
+        // Insert the encrypted character
         msg_str[i] = CHAR_SET[msg_idx];
     }
 
