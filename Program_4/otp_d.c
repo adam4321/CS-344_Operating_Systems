@@ -182,20 +182,7 @@ int main(int argc, char *argv[])
                 dir_to_check = opendir(dir_path); // Open up the directory this program was run in
 
                 // Make sure the current directory could be opened
-                if (dir_to_check == NULL)
-                {
-                    // Return an error to the client
-                    char no_dir[255];
-                    memset(no_dir, '\0', sizeof(no_dir));
-
-                    sprintf(no_dir, "The user directory %s wasn't found\n", dir_path);
-                    fprintf(stderr, "The user directory %s wasn't found\n", dir_path);
-
-                    // Send a Error message back to the client
-                    charsRead = send(establishedConnectionFD, no_dir, sizeof(no_dir), 0); // Send error back
-                    if (charsRead < 0) error("ERROR writing to socket");
-                }
-                else
+                if (dir_to_check != NULL)
                 {
                     // Search the directory for the oldest file
                     while ((file_in_dir = readdir(dir_to_check)) != NULL) // Check each entry in dir
@@ -222,7 +209,31 @@ int main(int argc, char *argv[])
                     closedir(dir_to_check); // Close the directory we opened
 
                     // Print an error if no file was found
-                    if (file_name[0] == '\0')
+                    if (file_name[0] != '\0')
+                    {
+                        // Piece together the path of the requested ciphertext file
+                        char full_path[255];
+                        memset(full_path, '\0', sizeof(full_path));
+                        sprintf(full_path, "%s/%s", dir_path, file_name);
+                        
+                        // Create a buffer for the ciphertext data
+                        char enc_msg[MAX_BUFFER_SIZE];
+                        memset(enc_msg, '\0', sizeof(enc_msg));
+
+                        // Read in the encoded message from the file
+                        FILE *ciphertext = fopen(full_path, "r");
+                        fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
+                        enc_msg[strcspn(enc_msg, "\n")] = '\0';
+
+                        // Close and delete the ciphertext file
+                        fclose(ciphertext);
+                        remove(full_path);
+
+                        // Send a Success message back to the client
+                        charsRead = send(establishedConnectionFD, enc_msg, sizeof(enc_msg), 0); // Send success back
+                        if (charsRead < 0) error("ERROR writing to socket");
+                    }
+                    else
                     {
                         // Return an error to the client
                         char no_dir[255];
@@ -235,27 +246,18 @@ int main(int argc, char *argv[])
                         charsRead = send(establishedConnectionFD, no_dir, sizeof(no_dir), 0); // Send error back
                         if (charsRead < 0) error("ERROR writing to socket");
                     }
+                }
+                else
+                {                    
+                    // Return an error to the client
+                    char no_dir[255];
+                    memset(no_dir, '\0', sizeof(no_dir));
 
-                    // Piece together the path of the requested ciphertext file
-                    char full_path[255];
-                    memset(full_path, '\0', sizeof(full_path));
-                    sprintf(full_path, "%s/%s", dir_path, file_name);
-                    
-                    // Create a buffer for the ciphertext data
-                    char enc_msg[MAX_BUFFER_SIZE];
-                    memset(enc_msg, '\0', sizeof(enc_msg));
+                    sprintf(no_dir, "The user directory %s wasn't found\n", dir_path);
+                    fprintf(stderr, "The user directory %s wasn't found\n", dir_path);
 
-                    // Read in the encoded message from the file
-                    FILE *ciphertext = fopen(full_path, "r");
-                    fgets(enc_msg, sizeof(enc_msg) - 1, ciphertext);
-                    enc_msg[strcspn(enc_msg, "\n")] = '\0';
-
-                    // Close and delete the ciphertext file
-                    fclose(ciphertext);
-                    remove(full_path);
-
-                    // Send a Success message back to the client
-                    charsRead = send(establishedConnectionFD, enc_msg, sizeof(enc_msg), 0); // Send success back
+                    // Send a Error message back to the client
+                    charsRead = send(establishedConnectionFD, no_dir, sizeof(no_dir), 0); // Send error back
                     if (charsRead < 0) error("ERROR writing to socket");
                 }
             }
@@ -267,6 +269,7 @@ int main(int argc, char *argv[])
             num_connects--;
             exit(0);
         }
+        
         // Parent process awaits the completion of it's children
         else { spawn_pid = waitpid(-1, &status, WNOHANG); }
     }
