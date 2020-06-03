@@ -172,11 +172,12 @@ int main(int argc, char *argv[])
                 char file_name[255];
                 memset(file_name, '\0', sizeof(file_name));
 
-                int oldest_time = (int)time(NULL); // Modified timestamp of newest subdir examined
+                // Store current time to compare against older files
+                int oldest_time = (int)time(NULL);
 
                 DIR *dir_to_check; // Holds the directory we're starting in
-                struct dirent *file_in_dir; // Holds the current subdir of the starting dir
-                struct stat file_attr; // Holds information we've gained about subdir
+                struct dirent *file_in_dir; // Holds the current file in the starting dir
+                struct stat file_attr; // Holds information we've gained about the file
 
                 dir_to_check = opendir(dir_path); // Open up the directory this program was run in
 
@@ -199,7 +200,7 @@ int main(int argc, char *argv[])
                     // Search the directory for the oldest file
                     while ((file_in_dir = readdir(dir_to_check)) != NULL) // Check each entry in dir
                     {
-                        if (strstr(file_in_dir->d_name, ".") == NULL) // If entry has prefix
+                        if (strstr(file_in_dir->d_name, ".") == NULL) // If entry isn't . or ..
                         {
                             // Assemble the relative path to the file
                             char cur_file_path[255];
@@ -210,7 +211,7 @@ int main(int argc, char *argv[])
 
                             if ((int)file_attr.st_mtime < oldest_time) // If this time is lower
                             {
-                                
+                                // The oldest file time is stored
                                 oldest_time = file_attr.st_mtime;
                                 memset(file_name, '\0', sizeof(file_name));
                                 strcpy(file_name, file_in_dir->d_name); // Store the directory
