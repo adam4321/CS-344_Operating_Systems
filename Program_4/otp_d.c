@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
             continue;
         }
 
+
         // Fork a new process for the new connection
         spawn_pid = fork();
-
 
         // Verify that the child process started
         if (spawn_pid == -1)
@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
         {
             // PROJECT REQUIREMENT THAT THE SERVER SLEEP FOR 2 SECONDS AFTER CONNECTION ACCTEPTANCE
             sleep(2);
+
 
             // Increment the number of connections
             num_connects++;
@@ -200,12 +201,12 @@ int main(int argc, char *argv[])
                     {
                         if (strstr(file_in_dir->d_name, ".") == NULL) // If entry has prefix
                         {
+                            // Assemble the relative path to the file
                             char cur_file_path[255];
                             memset(cur_file_path, '\0', sizeof(cur_file_path));
                             sprintf(cur_file_path, "%s/%s", dir_path, file_in_dir->d_name);
 
                             stat(cur_file_path, &file_attr); // Get attributes of the entry
-                            // printf("%s: %d\n", cur_file_path, (int)file_attr.st_mtime);
 
                             if ((int)file_attr.st_mtime < oldest_time) // If this time is lower
                             {
