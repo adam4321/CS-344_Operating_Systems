@@ -104,22 +104,8 @@ int main(int argc, char *argv[])
             exit(1);
         }
 
-
-        // printf("%s\n", key_str);
-        // printf("%s\n", plaintext_str);
-        
-
         // Call the function to encrypt the plaintext string
         encrypt_msg(msg_str, plaintext_str, key_str);
-
-        // printf("%s\n", msg_str);
-
-        // char new_str[MAX_BUFFER_SIZE];
-        // memset(new_str, '\0', sizeof(MAX_BUFFER_SIZE));
-        // decrypt_msg(new_str, msg_str, key_str);
-        
-        // printf("%s\n", new_str);
-
 
         // Assemble the post message string
         strcat(buffer, argv[1]);
@@ -150,30 +136,18 @@ int main(int argc, char *argv[])
         charsWritten = send(socketFD, buffer, strlen(buffer), 0); // Write to the server
         if (charsWritten < 0) error("CLIENT: ERROR writing to socket");
         if (charsWritten < strlen(buffer)) printf("CLIENT: WARNING: Not all data written to socket!\n");
-
-        // // Get return message from server
-        // memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer again for reuse
-        // charsRead = recv(socketFD, buffer, sizeof(buffer) - 1, 0); // Read data from the socket, leaving \0 at end
-        // if (charsRead < 0)
-        // {
-        //     error("CLIENT: ERROR reading from socket");
-        //     exit(2);
-        // }
-        // printf("%s\n", buffer);
     }
 
 
     // CLIENT GET MODE --------------------------------------------------------
     if (strcmp(argv[1], "get") == 0)
     {
-
-        memset(buffer, '\0', sizeof(buffer)); // Clear out the buffer array
-
+        // Clear out the buffer array and fill with the request mode and the user
+        memset(buffer, '\0', sizeof(buffer));
         strcat(buffer, argv[1]);
         strcat(buffer, " ");
         strcat(buffer, argv[2]);
         
-
         // Set up the server address struct
         memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
         serverAddress.sin_family = AF_INET; // Create a network-capable socket
@@ -207,16 +181,10 @@ int main(int argc, char *argv[])
         }
 
         // Check for no directory error
-        if (strstr(buffer, "The user directory") != NULL)
-        {
-            exit(1);
-        }
+        if (strstr(buffer, "The user directory") != NULL) { exit(1); }
 
         // Check for no file error
-        if (strstr(buffer, "No file for") != NULL)
-        {
-            exit(1);
-        }
+        if (strstr(buffer, "No file for") != NULL) { exit(1); }
 
         // Read in the key file
         char key_str[MAX_BUFFER_SIZE];
@@ -227,10 +195,8 @@ int main(int argc, char *argv[])
         char final_msg[MAX_BUFFER_SIZE];
         memset(final_msg, '\0', sizeof(MAX_BUFFER_SIZE));
 
-        // Decrypt the message
+        // Decrypt the message and print it to stdout
         decrypt_msg(final_msg, buffer, key_str);
-        
-        // printf("CLIENT: I received this from the server: \"%s\"\n", buffer);
         printf("%s\n", final_msg);
     }
 
@@ -264,15 +230,16 @@ int file_read_test(char *name, char *buffer, int size)
         exit(1);
     }
 
-    // Clear the buffer and read in the file contents
+    // Clear the buffer and read the file contents into buffer
     memset(buffer, '\0', size);
     fgets(buffer, size - 1, fptr);
     buffer[strcspn(buffer, "\n")] = '\0';
     int length = strlen(buffer);
 
-    // Test the string for bad characters
+    // Test the string in buffer for bad characters
     for (i = 0; i < length; i++)
     {
+        // The string should only have capital letters or a space
         if (!isupper(buffer[i]) && buffer[i] != ' ') {
             fprintf(stderr, "%s contains bad characters\n", name);
             fclose(fptr);
@@ -291,8 +258,9 @@ void encrypt_msg(char *msg_str, char *plaintext_str, char *key_str)
 {
     int plain_text_len = strlen(plaintext_str);
     int key_len = strlen(key_str);
-
     int i;
+
+
     for (i = 0; i < plain_text_len; i++)
     {
         int msg_idx = strchr(CHAR_SET, plaintext_str[i]) - CHAR_SET;
@@ -302,6 +270,7 @@ void encrypt_msg(char *msg_str, char *plaintext_str, char *key_str)
         msg_str[i] = CHAR_SET[msg_idx];
     }
 
+    // Remove the newline from the end of the string
     msg_str[i] = '\0';
 }
 
@@ -311,8 +280,9 @@ void decrypt_msg(char *msg_str, char *cipher_str, char *key_str)
 {
     int cipher_len = strlen(cipher_str);
     int key_len = strlen(key_str);
-
     int i;
+
+
     for (i = 0; i < cipher_len; i++)
     {
         int msg_idx = strchr(CHAR_SET, cipher_str[i]) - CHAR_SET;
@@ -329,5 +299,6 @@ void decrypt_msg(char *msg_str, char *cipher_str, char *key_str)
         msg_str[i] = CHAR_SET[msg_idx];
     }
 
+    // Remove the newline from the end of the string
     msg_str[i] = '\0';
 }

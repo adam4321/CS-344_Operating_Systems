@@ -149,16 +149,6 @@ int main(int argc, char *argv[])
                 // Print the path to the file
                 printf("./%s\n", file_path);
 
-                // // Create an array for the return message
-                // char return_msg[MAX_BUFFER_SIZE];
-                // memset(return_msg, '\0', sizeof(MAX_BUFFER_SIZE));
-
-                // sprintf(return_msg, "./%s", file_path);
-
-                // // Send a Success message back to the client
-                // charsRead = send(establishedConnectionFD, return_msg, sizeof(return_msg), 0); // Send success back
-                // if (charsRead < 0) error("ERROR writing to socket");
-
                 // Close the file and free the message
                 fclose(ciphertext);
                 free(message);
@@ -185,7 +175,8 @@ int main(int argc, char *argv[])
 
                 dir_to_check = opendir(dir_path); // Open up the directory this program was run in
 
-                if (dir_to_check == NULL) // Make sure the current directory could be opened
+                // Make sure the current directory could be opened
+                if (dir_to_check == NULL)
                 {
                     // Return an error to the client
                     char no_dir[255];
@@ -205,10 +196,14 @@ int main(int argc, char *argv[])
                     {
                         if (strstr(file_in_dir->d_name, ".") == NULL) // If entry has prefix
                         {
-                            stat(file_in_dir->d_name, &file_attr); // Get attributes of the entry
-                            // printf("%s :%d\n", file_in_dir->d_name, (int)file_attr.st_mtime);
+                            char cur_file_path[255];
+                            memset(cur_file_path, '\0', sizeof(cur_file_path));
+                            sprintf(cur_file_path, "%s/%s", dir_path, file_in_dir->d_name);
 
-                            if ((int)file_attr.st_mtime <= oldest_time) // If this time is lower
+                            stat(cur_file_path, &file_attr); // Get attributes of the entry
+                            // printf("%s: %d\n", cur_file_path, (int)file_attr.st_mtime);
+
+                            if ((int)file_attr.st_mtime < oldest_time) // If this time is lower
                             {
                                 
                                 oldest_time = file_attr.st_mtime;
@@ -270,7 +265,7 @@ int main(int argc, char *argv[])
             exit(0);
         }
         // Parent process awaits the completion of it's children
-        // else { waitpid(spawn_pid, &status, 0); }
+        else { spawn_pid = waitpid(-1, &status, WNOHANG); }
     }
 
     // Close the listening socket
