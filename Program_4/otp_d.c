@@ -22,8 +22,8 @@
 #include <dirent.h>
 
 
-#define MAX_CONNECTS     5
-#define MAX_BUFFER_SIZE  75000
+#define MAX_CONNECTS     5          // Maximum number of concurrent connections
+#define MAX_BUFFER_SIZE  75000      // Maximum size of a network message
 
 
 /* FUNCTION DECLARATIONS -----------------------------------------------------*/
@@ -35,13 +35,18 @@ void error(const char *msg);
 
 int main(int argc, char *argv[])
 {
-	int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
-	socklen_t sizeOfClientInfo;
-	char buffer[MAX_BUFFER_SIZE];
-	struct sockaddr_in serverAddress, clientAddress;
-    pid_t spawn_pid;
-    int status = 0;
-    int num_connects = 0;
+	int listenSocketFD;                 // Holds the listening socket
+    int establishedConnectionFD;        // Holds the network connection for child proc
+    int portNumber;                     // Holds the port number from argv[1]
+    int charsRead;                      // Holds the number of characters sent from client
+	socklen_t sizeOfClientInfo;         // Holds the client socket information
+	char buffer[MAX_BUFFER_SIZE];       // Holds the string received from the client
+	struct sockaddr_in serverAddress;   // Holds the server address
+    struct sockaddr_in clientAddress;   // Holds the client address
+    pid_t spawn_pid;                    // Holds the process id of the newly forked process
+    int status = 0;                     // Holds the status of the current process exit
+    int num_connects = 0;               // Holds the number of current connections
+
 
 	if (argc < 2) { fprintf(stderr,"USAGE: %s port\n", argv[0]); exit(1); } // Check usage & args
 
@@ -83,9 +88,9 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        
         // Fork a new process for the new connection
         spawn_pid = fork();
+
 
         // Verify that the child process started
         if (spawn_pid == -1)
