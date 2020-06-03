@@ -23,8 +23,8 @@
 #include <netdb.h>
 
 
-#define CHAR_SET_SIZE   27
-#define MAX_BUFFER_SIZE 75000
+#define CHAR_SET_SIZE   27          // The length of the character set
+#define MAX_BUFFER_SIZE 75000       // Maximum network message size
 
 const char *CHAR_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
 
@@ -41,10 +41,14 @@ void decrypt_msg(char *msg_str, char *cipher_str, char *key_str);
 
 int main(int argc, char *argv[])
 {
-	int socketFD, portNumber, charsWritten, charsRead;
-	struct sockaddr_in serverAddress;
-	struct hostent* serverHostInfo;
-	char buffer[MAX_BUFFER_SIZE];
+	int socketFD;                       // Holds the sending socket
+    int portNumber;                     // Holds the port number in argv[4 or 5]
+    int charsWritten;                   // Holds the number of characters written to stream
+    int charsRead;                      // Holds the number of characters returned
+	struct sockaddr_in serverAddress;   // Holds the server's address
+	struct hostent *serverHostInfo;     // Holds the server's information
+	char buffer[MAX_BUFFER_SIZE];       // Holds the message to be sent to the server
+    
     
     // Check the arguments passed on the command line
 	if (argc == 5)
