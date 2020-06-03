@@ -20,7 +20,6 @@
 #include <netinet/in.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <time.h>
 
 
 #define MAX_CONNECTS     5
@@ -214,9 +213,6 @@ int main(int argc, char *argv[])
                     }
                     
                     closedir(dir_to_check); // Close the directory we opened
-
-                    // Get_Oldest_File(file_name, dir_path);
-                    // printf("%s\n", file_name);
 
                     // Print an error if no file was found
                     if (file_name[0] == '\0')
