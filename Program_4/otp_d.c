@@ -179,9 +179,9 @@ int main(int argc, char *argv[])
                 struct dirent *file_in_dir; // Holds the current file in the starting dir
                 struct stat file_attr; // Holds information we've gained about the file
 
-                dir_to_check = opendir(dir_path); // Open up the directory this program was run in
+                dir_to_check = opendir(dir_path); // Open up the directory for the requested user
 
-                // Make sure the current directory could be opened
+                // Make sure the current directory could be opened, else print an error
                 if (dir_to_check != NULL)
                 {
                     // Search the directory for the oldest file
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
             num_connects--;
             exit(0);
         }
-        
+
         // Parent process awaits the completion of it's children
         else { spawn_pid = waitpid(-1, &status, WNOHANG); }
     }
